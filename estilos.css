@@ -1,0 +1,274 @@
+/* ====== Base ====== */
+:root{
+  --gap:12px;
+  --radius:10px;
+  --border:#d7dbe0;
+  --muted:#6b7280;
+  --text:#111;
+  --bg:#fafafa;
+}
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  font-family: system-ui, Arial, sans-serif;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+  background: var(--bg);
+  color: var(--text);
+}
+.titulo{ text-align:center; margin:0 0 16px; }
+
+.card{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+}
+
+.row{ display:flex; gap:var(--gap); align-items:center; margin:10px 0; }
+.row.end{ justify-content:flex-end; }
+
+.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); }
+.grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:var(--gap); }
+.grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:var(--gap); }
+
+.field{ display:flex; flex-direction:column; gap:6px; }
+.field span{ font-size:.9rem; color:#111; }
+.muted{ color: var(--muted); }
+.sub{ color: var(--muted); font-size: .9rem; }
+
+input[type="text"], input[type="number"], input[type="date"], textarea, select{
+  width:100%;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:#fff;
+  outline:none;
+  color:var(--text);
+}
+textarea{ min-height: 80px; resize: vertical; }
+input[readonly]{ background:#f3f4f6; }
+input[type="submit"], button{
+  padding:10px 14px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:#111827;
+  color:#fff;
+  cursor:pointer;
+}
+button{ background:#374151; }
+/* fix del typo en :hover */
+button:hover, input[type="submit"]:hover{ filter:brightness(1.06); }
+
+/* Utilidad para ocultar en impresión */
+.no-print{}
+
+/* Spinner */
+.spinner{ display:none; text-align:center; }
+.loader{
+  border:4px solid #f3f3f3;
+  border-top:4px solid #3498db;
+  border-radius:50%;
+  width:30px; height:30px;
+  animation: spin 1s linear infinite;
+  margin:0 auto;
+}
+@keyframes spin{ 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+
+.dni-wrapper{ display:flex; align-items:center; gap:8px; }
+.inline-spinner{
+  width:18px; height:18px;
+  border:2px solid #cfd8dc; border-top:2px solid #3498db;
+  border-radius:50%; animation:spin .8s linear infinite;
+}
+
+/* Receta */
+.receta{ margin-top:14px; }
+.receta h3{ margin:10px 0 6px; }
+.receta .fila{ display:flex; gap:var(--gap); align-items:center; }
+.receta .fila select{ width:120px; }
+.receta .fila input[name$="_eje"]{ width:120px; }
+
+/* Totales y acciones */
+.totales{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:var(--gap);
+  margin:16px 0;
+}
+.acciones{ display:flex; gap:var(--gap); margin-top:12px; }
+
+/* ====== Área de impresión (ticket) ====== */
+.print-area{ display:none; font-family: system-ui, Arial, sans-serif; color:#000; }
+
+/* ====== PRINT A4: panel 140x120 + cupón 50x120 ====== */
+@media print{
+  html, body { height:auto; }
+  body{ background:#fff !important; color:#000 !important; }
+
+  /* mostrar sólo el documento de impresión */
+  #formulario, .acciones, .no-print, .spinner { display:none !important; }
+  .print-area{ display:block; }
+
+  /* mejorar contraste y colores impresos */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  @page{ size: A4; margin: 10mm; }
+
+  .print-sheet{
+    width: 190mm; /* 210-20 mm */
+    display: flex;
+    gap: 0mm;
+    page-break-inside: avoid;
+  }
+
+  .panel{
+    border: 1px solid #000;
+    height: 120mm;
+    padding: 6mm;
+    box-sizing: border-box;
+  }
+
+  .panel-main{               /* 140mm x 120mm */
+    width: 140mm;
+  }
+
+  .panel-coupon{             /* 50mm x 120mm */
+    width: 50mm;
+    border-left: 1px dashed #000;    /* línea de corte */
+    position: relative;
+  }
+
+  /* ↑ Medidas intactas. Tipografías un poco más grandes */
+  .panel-title{ font-weight: 700; font-size: 16px; text-align: center; margin: 0 0 4mm 0; } /* antes 14px */
+
+  .logo{
+    max-width: 40mm;
+    max-height: 14mm;
+    object-fit: contain;
+    display:block;
+    margin: 0 auto 3mm auto;
+  }
+
+  .rows{ display:grid; grid-template-columns: 1fr 1fr; gap: 2mm 6mm; font-size: 12px; } /* antes 11px */
+  .row-full{ grid-column: 1 / -1; }
+
+  .print-kv{ display:flex; gap:3mm; }
+  .print-k{ min-width: 38mm; font-weight:700; } /* antes 34mm */
+  .print-v{ flex:1; border-bottom: 1px dotted #000; }
+
+  .print-table{
+    width:100%;
+    border-collapse: collapse;
+    font-size: 12px; /* antes 11px */
+    margin-top: 2mm;
+  }
+  .print-table td{
+    border-bottom: 1px dotted #000;
+    padding: 1mm 0;
+  }
+  .print-footer{
+    margin-top: 3mm;
+    font-size: 12px; /* antes 11px */
+  }
+
+  .coupon-title{ font-weight:700; font-size:13px; text-align:center; margin-bottom:2mm; } /* antes 12px */
+  .coupon-field{ font-size: 12px; margin-bottom: 1.8mm; } /* antes 11px */
+
+  .qr{
+    width: 36mm; height: 36mm; border: 1px solid #000;
+    object-fit: contain;
+    display:block; margin: 3mm auto 0 auto;
+  }
+
+  .cut-hint{
+    position:absolute; top:0; left:-0.5mm; bottom:0;
+    border-left: 1px dashed #000;
+  }
+
+  /* ——— Ubicación/estilo del barcode al imprimir ——— */
+  #barcode-holder-trabajo{
+    text-align: left;      /* queda alineado con las etiquetas */
+    margin: 2mm 0;
+  }
+  #barcode-trabajo{
+    width: 90mm !important;  /* ~3 cm más largo que el tamaño de pantalla (60mm) */
+    height: auto !important; /* respetamos proporción del SVG */
+  }
+}
+
+/* Galería de fotos (miniaturas) */
+.galeria{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.galeria .thumb{ height:72px; width:auto; border:1px solid #ddd; border-radius:6px; }
+
+/* Modal de cámara */
+.cam-modal{
+  position: fixed; inset:0; background: rgba(0,0,0,.6);
+  display: grid; place-items: center; z-index: 9999;
+}
+.cam-dialog{
+  width: min(680px, 94vw); background:#fff; border-radius:16px; padding:14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.cam-head{ font-weight:700; font-size:18px; margin-bottom:8px; }
+#cam-video{ width:100%; border-radius:10px; background:#000; }
+#cam-shot{ width:100%; border:1px solid #e5e7eb; border-radius:10px; }
+.cam-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:10px; }
+.cam-actions button{ padding:10px 14px; font-weight:700; }
+
+/* Oculta cualquier elemento con atributo hidden */
+[hidden] { display: none !important; }
+
+/* ===== Mejora de modal de cámara para tablet/móvil ===== */
+body.cam-open { overflow: hidden; }
+
+.cam-head{
+  display:flex; align-items:center; justify-content:space-between;
+  font-weight:700; font-size:18px; margin-bottom:8px;
+}
+.cam-close{
+  appearance:none; border:none; cursor:pointer;
+  width:36px; height:36px; border-radius:999px;
+  background:#111827; color:#fff; font-size:20px; line-height:36px;
+}
+
+/* Pantallas anchas: queda como antes (centrado) */
+/* Pantallas tablet/móvil: fullscreen con barra fija inferior */
+@media (max-width: 1024px){
+  .cam-modal{ padding:0; }
+  .cam-dialog{
+    width:100vw; height:100vh; border-radius:0;
+    padding:12px 12px 88px;              /* espacio para la barra inferior */
+    background:#000;                      /* entorno oscuro */
+  }
+  .cam-head{ color:#fff; margin:4px 4px 8px; }
+  #cam-video{
+    width:100%;
+    height: calc(100vh - 170px);         /* ocupa casi toda la altura */
+    background:#000;
+    object-fit: cover;                    /* llena el área, sin bandas */
+    border-radius:12px;
+  }
+  #cam-preview{ margin-top:8px; }
+  #cam-shot{ width:100%; height:auto; border-radius:12px; }
+
+  .cam-actions{
+    position: fixed; left:0; right:0;
+    bottom: env(safe-area-inset-bottom, 0);
+    background: rgba(17,24,39,.96);
+    display:flex; gap:12px; justify-content:space-between;
+    padding:12px 16px;
+    box-shadow: 0 -6px 24px rgba(0,0,0,.35);
+  }
+  .cam-actions button{
+    flex:1; padding:14px 0; font-size:16px; font-weight:700;
+    border-radius:12px;
+  }
+}
+
+/* ——— Estilo del barcode en pantalla (preview) ——— */
+#barcode-trabajo{
+  max-width: 60mm;   /* preview chico; impresión lo fuerza a 90mm */
+  height: auto;
+}

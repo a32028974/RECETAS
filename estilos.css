@@ -58,7 +58,6 @@ input[type="submit"], button{
   cursor:pointer;
 }
 button{ background:#374151; }
-/* fix del typo en :hover */
 button:hover, input[type="submit"]:hover{ filter:brightness(1.06); }
 
 /* Utilidad para ocultar en impresión */
@@ -105,7 +104,7 @@ button:hover, input[type="submit"]:hover{ filter:brightness(1.06); }
 /* ====== PRINT A4: panel 140x120 + cupón 50x120 ====== */
 @media print{
   html, body { height:auto; }
-  body{ background:#fff !important; color:#000 !important; }
+  body{ background:#fff !important; color:#000 !important; margin:0; padding:0; }
 
   /* mostrar sólo el documento de impresión */
   #formulario, .acciones, .no-print, .spinner { display:none !important; }
@@ -114,13 +113,23 @@ button:hover, input[type="submit"]:hover{ filter:brightness(1.06); }
   /* mejorar contraste y colores impresos */
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-  @page{ size: A4; margin: 10mm; }
+  /* Márgenes pegados (arriba e izquierda al ras) */
+  @page{
+    size: A4;
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 6mm;   /* leve resguardo para no cortar nada */
+    margin-bottom: 6mm;
+  }
 
+  /* Hoja compuesta: alineada a la izquierda sin sangría */
   .print-sheet{
-    width: 190mm; /* 210-20 mm */
+    width: 200mm;           /* 210mm - 10mm de resguardo derecha */
     display: flex;
-    gap: 0mm;
+    gap: 0;
     page-break-inside: avoid;
+    margin: 0;              /* pegado al borde */
+    padding: 0;
   }
 
   .panel{
@@ -128,6 +137,7 @@ button:hover, input[type="submit"]:hover{ filter:brightness(1.06); }
     height: 120mm;
     padding: 6mm;
     box-sizing: border-box;
+    overflow: hidden;       /* evita que algo sobresalga del borde */
   }
 
   .panel-main{               /* 140mm x 120mm */
@@ -140,8 +150,8 @@ button:hover, input[type="submit"]:hover{ filter:brightness(1.06); }
     position: relative;
   }
 
-  /* ↑ Medidas intactas. Tipografías un poco más grandes */
-  .panel-title{ font-weight: 700; font-size: 16px; text-align: center; margin: 0 0 4mm 0; } /* antes 14px */
+  /* Tipografías */
+  .panel-title{ font-weight: 700; font-size: 16px; text-align: center; margin: 0 0 4mm 0; }
 
   .logo{
     max-width: 40mm;
@@ -151,30 +161,44 @@ button:hover, input[type="submit"]:hover{ filter:brightness(1.06); }
     margin: 0 auto 3mm auto;
   }
 
-  .rows{ display:grid; grid-template-columns: 1fr 1fr; gap: 2mm 6mm; font-size: 12px; } /* antes 11px */
+  .rows{ display:grid; grid-template-columns: 1fr 1fr; gap: 2mm 6mm; font-size: 12px; }
   .row-full{ grid-column: 1 / -1; }
 
   .print-kv{ display:flex; gap:3mm; }
-  .print-k{ min-width: 38mm; font-weight:700; } /* antes 34mm */
-  .print-v{ flex:1; border-bottom: 1px dotted #000; }
+  .print-k{ min-width: 38mm; font-weight:700; }
+  .print-v{
+    flex:1;
+    border-bottom: 1px dotted #000;
+    overflow-wrap: anywhere;    /* el texto nunca se sale */
+    word-break: break-word;
+  }
 
   .print-table{
     width:100%;
     border-collapse: collapse;
-    font-size: 12px; /* antes 11px */
+    font-size: 12px;
     margin-top: 2mm;
+    table-layout: fixed;        /* celdas estables para que no “empujen” */
   }
   .print-table td{
     border-bottom: 1px dotted #000;
     padding: 1mm 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
   .print-footer{
     margin-top: 3mm;
-    font-size: 12px; /* antes 11px */
+    font-size: 12px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
-  .coupon-title{ font-weight:700; font-size:13px; text-align:center; margin-bottom:2mm; } /* antes 12px */
-  .coupon-field{ font-size: 12px; margin-bottom: 1.8mm; } /* antes 11px */
+  .coupon-title{ font-weight:700; font-size:13px; text-align:center; margin-bottom:2mm; }
+  .coupon-field{
+    font-size: 12px; margin-bottom: 1.8mm;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
 
   .qr{
     width: 36mm; height: 36mm; border: 1px solid #000;
@@ -187,14 +211,24 @@ button:hover, input[type="submit"]:hover{ filter:brightness(1.06); }
     border-left: 1px dashed #000;
   }
 
-  /* ——— Ubicación/estilo del barcode al imprimir ——— */
+  /* ——— Barcode: no se achica y el texto NO se sale ——— */
   #barcode-holder-trabajo{
-    text-align: left;      /* queda alineado con las etiquetas */
-    margin: 2mm 0;
+    text-align: left;
+    margin: 2mm 0 1mm 0;
+    max-width: 100%;
   }
+  /* si es <svg>, este width lo respeta; si es <img>, idem */
   #barcode-trabajo{
-    width: 90mm !important;  /* ~3 cm más largo que el tamaño de pantalla (60mm) */
-    height: auto !important; /* respetamos proporción del SVG */
+    width: 90mm !important;     /* tamaño fijo para impresión */
+    height: auto !important;
+    max-width: none !important; /* evita que algún contenedor lo reduzca */
+    display:block;
+  }
+  /* mantener un alto mínimo para que nada empuje al texto inferior */
+  #barcode-holder-trabajo + .print-footer,
+  #barcode-holder-trabajo + .coupon-field{
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 }
 
@@ -245,9 +279,9 @@ body.cam-open { overflow: hidden; }
   .cam-head{ color:#fff; margin:4px 4px 8px; }
   #cam-video{
     width:100%;
-    height: calc(100vh - 170px);         /* ocupa casi toda la altura */
+    height: calc(100vh - 170px);
     background:#000;
-    object-fit: cover;                    /* llena el área, sin bandas */
+    object-fit: cover;
     border-radius:12px;
   }
   #cam-preview{ margin-top:8px; }
@@ -269,6 +303,6 @@ body.cam-open { overflow: hidden; }
 
 /* ——— Estilo del barcode en pantalla (preview) ——— */
 #barcode-trabajo{
-  max-width: 60mm;   /* preview chico; impresión lo fuerza a 90mm */
+  max-width: 60mm;   /* preview chico; en print se fija a 90mm */
   height: auto;
 }

@@ -1,15 +1,13 @@
 // historial.js
-// Importa tu API_URL. Si preferís, podés pegarla a mano aquí.
 import { API_URL as BASE } from '../js/api.js';
-const API_URL = BASE; // mismo Apps Script que ya usás
+const API_URL = BASE;
 
 // ====== helpers UI ======
 const $  = (s) => document.querySelector(s);
-const $$ = (s) => document.querySelectorAll(s);
 
 function setSpin(on){ const sp = $('#spinner'); if (sp) sp.hidden = !on; }
 function setStatus(msg){ const el = $('#status'); if (el) el.innerHTML = msg || ''; }
-function showEmpty(on){ const el = $('#empty'); if (el) el.hidden = !on; }
+function showEmpty(show){ const el = $('#empty'); if (el) el.hidden = !show; } // <- corregido
 
 // ====== estado ======
 let ALL_ROWS = [];     // crudo del server
@@ -23,12 +21,12 @@ function renderPage(){
   tbody.innerHTML = '';
 
   if (!FILTERED.length){
-    showEmpty(false); // mostramos cartel
+    showEmpty(true);              // <- mostrar cartel vacío
     $('#pager').hidden = true;
     $('#pageInfo').textContent = '';
     return;
   }
-  showEmpty(true);
+  showEmpty(false);
 
   const totalPages = Math.max(1, Math.ceil(FILTERED.length / PAGE_SIZE));
   page = Math.min(Math.max(1, page), totalPages);
@@ -64,7 +62,7 @@ function renderPage(){
 
   // acciones por fila
   tbody.querySelectorAll('button[data-act]').forEach(btn=>{
-    btn.addEventListener('click', (ev)=>{
+    btn.addEventListener('click', ()=>{
       const pdf = btn.getAttribute('data-pdf');
       const act = btn.getAttribute('data-act');
       if (!pdf) return;
@@ -76,7 +74,6 @@ function renderPage(){
         if (!w) return;
         const tryPrint = () => { try { w.focus(); w.print(); } catch(_){} };
         w.onload = tryPrint;
-        // fallback por si onload no dispara
         setTimeout(tryPrint, 1200);
       } else if (act==='copy'){
         navigator.clipboard.writeText(pdf).then(()=>{
@@ -114,27 +111,49 @@ async function buscar(){
   setStatus('');
   try{
     const url = `${API_URL}?buscar=1&q=${encodeURIComponent(q)}&limit=500`;
-    const res = await fetch(url, { method:'GET' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
+
+    const controller = new AbortController();              // timeout defensivo
+    const t = setTimeout(()=>controller.abort(), 15000);
+
+    const res = await fetch(url, { method:'GET', signal: controller.signal });
+    clearTimeout(t);
+
+    const raw = await res.text();                          // leemos como texto
+    if (!res.ok){
+      console.error('HTTP', res.status, raw);
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    let json;
+    try{
+      json = raw ? JSON.parse(raw) : null;                 // intentamos parsear JSON
+    }catch(parseErr){
+      console.error('Respuesta no JSON:', raw);
+      throw new Error('Respuesta del servidor inválida');
+    }
 
     const rows = Array.isArray(json?.rows) ? json.rows : [];
     ALL_ROWS = rows.map(r=>({
-      numero: r.numero || '',
-      fecha:  r.fecha || '',
-      nombre: r.nombre || '',
-      dni:    r.dni || '',
-      telefono: r.telefono || '',
-      pdf:    r.pdf || ''
+      numero:    r.numero    || '',
+      fecha:     r.fecha     || '',
+      nombre:    r.nombre    || '',
+      dni:       r.dni       || '',
+      telefono:  r.telefono  || '',
+      pdf:       r.pdf       || ''
     }));
 
     const updated = json?.updatedAt ? ` · Actualizado: ${json.updatedAt}` : '';
     setStatus(`<b>${ALL_ROWS.length}</b> resultado${ALL_ROWS.length!==1?'s':''}${updated}`);
+
     applyFilters();
 
   }catch(err){
-    console.error(err);
-    setStatus('<span style="color:#d33">Error al buscar</span>');
+    console.error('Buscar falló:', err);
+    // Si abortó por timeout:
+    const msg = (err.name === 'AbortError')
+      ? 'La búsqueda tardó demasiado. Probá de nuevo.'
+      : 'Error al buscar';
+    setStatus(`<span style="color:#d33">${msg}</span>`);
     ALL_ROWS = [];
     applyFilters();
   }finally{

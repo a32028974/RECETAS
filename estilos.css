@@ -272,3 +272,9 @@ body.cam-open { overflow: hidden; }
   max-width: 60mm;   /* preview chico; impresión lo fuerza a 90mm */
   height: auto;
 }
+
+/* Historial */
+.card.historial { margin-top: 18px; }
+.card.historial .row.meta { margin-top: 6px; color: #64748b; }
+#hist-status b { color: var(--accent, #0a7); }
+

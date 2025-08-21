@@ -21,6 +21,7 @@ function fotosBase64(){
   const a = Array.isArray(window.__FOTOS) ? window.__FOTOS : [];
   return a.map(d => (d.split(",")[1] || "").trim()).filter(Boolean);
 }
+
 function resumenPack(){
   const money = v => (v ? `$ ${v}` : "");
   return {
@@ -86,7 +87,7 @@ export async function guardarTrabajo() {
     const hidden = document.getElementById('pack_url');
     if (hidden) hidden.value = packUrl;
 
-    // 3) Ofrecer imprimir
+    // 3) Ofrecer imprimir con SweetAlert
     if (window.Swal) {
       await Swal.fire({
         title:"Guardado y PDF enviado",

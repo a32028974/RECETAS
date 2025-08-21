@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-  <h2 class="titulo">Optica Cristal v19-8 10.24 </h2>
+  <h2 class="titulo">Optica Cristal v21-8 12.01 </h2>
 
   <div class="spinner" id="spinner">
     <div class="loader"></div>
@@ -189,6 +189,8 @@
   <div class="acciones">
     <button type="button" id="btn-imprimir">🖨️ Imprimir</button>
     <button type="button" id="btn-limpiar">🧹 Limpiar</button>
+    <a href="historial/historial.html" class="btn-secondary">Ver historial</a>
+
   </div>
 
   <p id="mensaje" class="muted"></p>
@@ -220,6 +222,8 @@
 
   <!-- Tu JS principal -->
   <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/generarPack.js"></script>
+
 
   <script>
     if ("serviceWorker" in navigator) {

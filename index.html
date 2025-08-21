@@ -173,6 +173,39 @@
       </label>
     </div>
 
+    <!-- === Historial de trabajos === -->
+<section class="card historial">
+  <div class="row">
+    <input id="hist-q" class="input" type="search"
+           placeholder="Buscar por Nº, DNI, nombre, apellido o teléfono…" />
+    <button id="hist-search" class="btn">Buscar</button>
+    <button id="hist-clear" class="btn-secondary">Limpiar</button>
+  </div>
+
+  <div class="row meta">
+    <span id="hist-status"></span>
+  </div>
+
+  <div id="hist-spinner" class="spinner" hidden></div>
+
+  <div class="table-wrap">
+    <table class="table" id="hist-table">
+      <thead>
+        <tr>
+          <th style="width:110px">N°</th>
+          <th style="width:110px">Fecha</th>
+          <th>Cliente</th>
+          <th style="width:120px">DNI</th>
+          <th style="width:140px">Teléfono</th>
+          <th style="width:140px">PDF</th>
+        </tr>
+      </thead>
+      <tbody id="hist-body"></tbody>
+    </table>
+    <div id="hist-empty" class="empty" hidden>Sin resultados</div>
+  </div>
+</section>
+
     <!-- Acciones -->
     <div class="grid-3">
       <input type="text" name="vendedor" id="vendedor" placeholder="Nombre del vendedor">

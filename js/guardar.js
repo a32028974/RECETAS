@@ -40,6 +40,7 @@ function resumenPack() {
     "Otro": `${V("otro_concepto")} ${money(V("precio_otro"))}`,
     "OD": `ESF ${V("od_esf")}  |  CIL ${V("od_cil")}  |  EJE ${V("od_eje")}`,
     "OI": `ESF ${V("oi_esf")}  |  CIL ${V("oi_cil")}  |  EJE ${V("oi_eje")}`,
+    "DNP (OD/OI)": V("dnp"),
     "ADD": V("add"),
     "TOTAL": money(V("total")),
     "SEÑA": money(V("sena")),

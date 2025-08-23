@@ -1,328 +1,269 @@
-/* ====== Base ====== */
-:root{
-  --gap:12px;
-  --radius:10px;
-  --border:#d7dbe0;
-  --muted:#6b7280;
-  --text:#111;
-  --bg:#fafafa;
+/* =========================
+   Optica Cristal — UI base
+   Prioridad: Tablet vertical (≈768–1024)
+   Luego: Desktop >= 1200
+   ========================= */
+
+/* Reset suave */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  color: #111827;
+  background: #f4f6f8;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-*{ box-sizing:border-box; }
-html,body{ height:100%; }
-body{
-  font-family: system-ui, Arial, sans-serif;
+
+/* Contenido principal */
+.titulo {
   max-width: 960px;
+  margin: 16px auto 8px auto;
+  padding: 0 12px;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.card {
+  max-width: 960px;        /* tablet vertical */
   margin: 0 auto;
-  padding: 24px;
-  background: var(--bg);
-  color: var(--text);
-}
-.titulo{ text-align:center; margin:0 0 16px; }
-
-.card{
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:16px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 24px rgba(17,24,39,.06);
 }
 
-.row{ display:flex; gap:var(--gap); align-items:center; margin:10px 0; }
-.row.end{ justify-content:flex-end; }
-
-.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); }
-.grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:var(--gap); }
-.grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:var(--gap); }
-
-.field{ display:flex; flex-direction:column; gap:6px; }
-.field span{ font-size:.9rem; color:#111; }
-.muted{ color: var(--muted); }
-.sub{ color: var(--muted); font-size: .9rem; }
-
-input[type="text"], input[type="number"], input[type="date"], textarea, select{
-  width:100%;
-  padding:8px 10px;
-  border:1px solid var(--border);
-  border-radius:8px;
-  background:#fff;
-  outline:none;
-  color:var(--text);
+/* Layouts de grilla genéricos */
+.grid-2, .grid-3, .grid-4 {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
 }
-textarea{ min-height: 80px; resize: vertical; }
-input[readonly]{ background:#f3f4f6; }
-input[type="submit"], button{
-  padding:10px 14px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  background:#111827;
-  color:#fff;
-  cursor:pointer;
+
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+/* Fila libre (labels o pequeñas cosas) */
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 6px 0 10px;
 }
-button{ background:#374151; }
-button:hover, input[type="submit"]:hover{ filter:brightness(1.06); }
+.row.end { justify-content: flex-end; }
 
-/* Utilidad para ocultar en impresión */
-.no-print{}
+/* Campos */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > span {
+  font-size: 12px;
+  color: #6b7280; /* gris label */
+}
 
-/* Armazón: dos campos cortos en la misma fila */
+/* Inputs / selects */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d7dbe0;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+input[readonly] {
+  background: #f6f7f9;
+  color: #6b7280;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #3b82f6; /* azul */
+  box-shadow: 0 0 0 3px rgba(59,130,246,.18);
+}
+
+/* Radios de “entrega” */
+.row label { font-size: 14px; color: #111827; }
+.row .sub { color:#6b7280; font-size: 12px; margin-left: 4px; }
+.muted { color:#6b7280; font-size: 12px; }
+
+/* Wrapper para DNI / armazón con spinner */
+.dni-wrapper {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Spinner chico embebido */
+.inline-spinner {
+  width: 16px; height: 16px;
+  border-radius: 999px;
+  border: 2px solid #d7dbe0;
+  border-top-color: #3b82f6;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); }}
+
+/* =========================
+   Grilla armazón como mockup
+   ========================= */
 .grid-armazon {
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: 1fr minmax(100px, 200px);
   gap: 12px;
   align-items: end;
+  margin-bottom: 12px;
 }
 
-/* Anchos “en caracteres” para inputs cortos */
+/* Anchos “por caracteres” para inputs cortos */
 .w-7ch  { width: 7ch;  max-width: 7ch; }
 .w-10ch { width: 10ch; max-width: 12ch; }
 
-/* (Opcional) cursor de bloqueo cuando deshabilitamos el form */
+/* Receta */
+.receta { margin: 4px 0 10px; }
+.receta h3 {
+  margin: 12px 0 6px;
+  font-size: 14px;
+  letter-spacing: .2px;
+}
+.receta .fila {
+  display: grid;
+  grid-template-columns: minmax(120px,1fr) minmax(120px,1fr) minmax(100px,120px);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* DNP y otros agregados */
+.receta .fila input[placeholder="DNP"],
+#dnp {
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* Totales */
+.totales {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+/* Botones */
+button, input[type="submit"], .btn-secondary {
+  background: #111827;
+  color: #fff;
+  border: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(0,0,0,.04);
+  transition: transform .02s ease, filter .2s ease, background .2s ease;
+}
+button:hover, input[type="submit"]:hover, .btn-secondary:hover { filter: brightness(1.05); }
+button:active, input[type="submit"]:active { transform: translateY(1px); }
+
+.btn-secondary {
+  background: #374151;
+  color: #fff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Barra de acciones abajo (Imprimir, Limpiar, Historial, Guardar) */
+.acciones {
+  max-width: 960px;
+  margin: 10px auto 20px;
+  padding: 0 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+.acciones .btns-left {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Galería de fotos */
+.galeria {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+.galeria img, .galeria canvas, .galeria .ph {
+  width: 120px; height: 120px;
+  background: #000;
+  color:#fff;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+/* Mensajes */
+#mensaje { max-width: 960px; margin: 8px auto; padding: 0 12px; }
+
+/* Spinner de pantalla */
+.spinner {
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(1px);
+  background: rgba(255,255,255,.3);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.spinner .loader {
+  width: 36px; height: 36px;
+  border-radius: 9999px;
+  border: 3px solid #cfd6e0;
+  border-top-color: #111827;
+  animation: spin .9s linear infinite;
+}
+.spinner .spinner-text { margin-top: 8px; color:#111827; font-size: 13px; }
+
+/* Estado bloqueado del form (cuando buscamos o guardamos) */
 form[aria-busy="true"] {
   pointer-events: none;
-  opacity: 0.6;
+  opacity: .6;
   cursor: progress;
 }
 
+/* Área de impresión no visible en pantalla */
+.print-area { position: absolute; left: -9999px; top: -9999px; }
 
-/* Spinner */
-.spinner{ display:none; text-align:center; }
-.loader{
-  border:4px solid #f3f3f3;
-  border-top:4px solid #3498db;
-  border-radius:50%;
-  width:30px; height:30px;
-  animation: spin 1s linear infinite;
-  margin:0 auto;
-}
-@keyframes spin{ 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
-
-.dni-wrapper{ display:flex; align-items:center; gap:8px; }
-.inline-spinner{
-  width:18px; height:18px;
-  border:2px solid #cfd8dc; border-top:2px solid #3498db;
-  border-radius:50%; animation:spin .8s linear infinite;
-}
-
-/* Receta */
-.receta{ margin-top:14px; }
-.receta h3{ margin:10px 0 6px; }
-.receta .fila{ display:flex; gap:var(--gap); align-items:center; }
-.receta .fila select{ width:120px; }
-.receta .fila input[name$="_eje"]{ width:120px; }
-
-/* Totales y acciones */
-.totales{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:var(--gap);
-  margin:16px 0;
-}
-.acciones{ display:flex; gap:var(--gap); margin-top:12px; }
-
-/* ====== Área de impresión (ticket) ====== */
-.print-area{ display:none; font-family: system-ui, Arial, sans-serif; color:#000; }
-
-/* ====== PRINT A4: panel 140x120 + cupón 50x120 ====== */
-@media print{
-  html, body { height:auto; }
-  body{ background:#fff !important; color:#000 !important; margin:0; padding:0; }
-
-  /* mostrar sólo el documento de impresión */
-  #formulario, .acciones, .no-print, .spinner { display:none !important; }
-  .print-area{ display:block; }
-
-  /* mejorar contraste y colores impresos */
-  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
-  /* Márgenes pegados (arriba e izquierda al ras) */
-  @page{
-    size: A4;
-    margin-top: 0;
-    margin-left: 0;
-    margin-right: 6mm;   /* leve resguardo para no cortar nada */
-    margin-bottom: 6mm;
+/* =========================
+   Tablet XL / Desktop
+   ========================= */
+@media (min-width: 1200px) {
+  .titulo, .card, .acciones, #mensaje { max-width: 1140px; } /* PC */
+  .grid-3 { grid-template-columns: 1.2fr 1fr 1fr; }
+  .receta .fila {
+    grid-template-columns: 150px 150px 120px;
   }
-
-  /* Hoja compuesta: alineada a la izquierda sin sangría */
-  .print-sheet{
-    width: 200mm;           /* 210mm - 10mm de resguardo derecha */
-    display: flex;
-    gap: 0;
-    page-break-inside: avoid;
-    margin: 0;              /* pegado al borde */
-    padding: 0;
-  }
-
-  .panel{
-    border: 1px solid #000;
-    height: 120mm;
-    padding: 6mm;
-    box-sizing: border-box;
-    overflow: hidden;       /* evita que algo sobresalga del borde */
-  }
-
-  .panel-main{               /* 140mm x 120mm */
-    width: 140mm;
-  }
-
-  .panel-coupon{             /* 50mm x 120mm */
-    width: 50mm;
-    border-left: 1px dashed #000;    /* línea de corte */
-    position: relative;
-  }
-
-  /* Tipografías */
-  .panel-title{ font-weight: 700; font-size: 16px; text-align: center; margin: 0 0 4mm 0; }
-
-  .logo{
-    max-width: 40mm;
-    max-height: 14mm;
-    object-fit: contain;
-    display:block;
-    margin: 0 auto 3mm auto;
-  }
-
-  .rows{ display:grid; grid-template-columns: 1fr 1fr; gap: 2mm 6mm; font-size: 12px; }
-  .row-full{ grid-column: 1 / -1; }
-
-  .print-kv{ display:flex; gap:3mm; }
-  .print-k{ min-width: 38mm; font-weight:700; }
-  .print-v{
-    flex:1;
-    border-bottom: 1px dotted #000;
-    overflow-wrap: anywhere;    /* el texto nunca se sale */
-    word-break: break-word;
-  }
-
-  .print-table{
-    width:100%;
-    border-collapse: collapse;
-    font-size: 12px;
-    margin-top: 2mm;
-    table-layout: fixed;        /* celdas estables para que no “empujen” */
-  }
-  .print-table td{
-    border-bottom: 1px dotted #000;
-    padding: 1mm 0;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-  .print-footer{
-    margin-top: 3mm;
-    font-size: 12px;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  .coupon-title{ font-weight:700; font-size:13px; text-align:center; margin-bottom:2mm; }
-  .coupon-field{
-    font-size: 12px; margin-bottom: 1.8mm;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  .qr{
-    width: 36mm; height: 36mm; border: 1px solid #000;
-    object-fit: contain;
-    display:block; margin: 3mm auto 0 auto;
-  }
-
-  .cut-hint{
-    position:absolute; top:0; left:-0.5mm; bottom:0;
-    border-left: 1px dashed #000;
-  }
-
-  /* ——— Barcode: no se achica y el texto NO se sale ——— */
-  #barcode-holder-trabajo{
-    text-align: left;
-    margin: 2mm 0 1mm 0;
-    max-width: 100%;
-  }
-  /* si es <svg>, este width lo respeta; si es <img>, idem */
-  #barcode-trabajo{
-    width: 90mm !important;     /* tamaño fijo para impresión */
-    height: auto !important;
-    max-width: none !important; /* evita que algún contenedor lo reduzca */
-    display:block;
-  }
-  /* mantener un alto mínimo para que nada empuje al texto inferior */
-  #barcode-holder-trabajo + .print-footer,
-  #barcode-holder-trabajo + .coupon-field{
-    overflow-wrap: anywhere;
-    word-break: break-word;
+  .grid-armazon {
+    grid-template-columns: minmax(220px, 1fr) 180px;
   }
 }
 
-/* Galería de fotos (miniaturas) */
-.galeria{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
-.galeria .thumb{ height:72px; width:auto; border:1px solid #ddd; border-radius:6px; }
-
-/* Modal de cámara */
-.cam-modal{
-  position: fixed; inset:0; background: rgba(0,0,0,.6);
-  display: grid; place-items: center; z-index: 9999;
-}
-.cam-dialog{
-  width: min(680px, 94vw); background:#fff; border-radius:16px; padding:14px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.25);
-}
-.cam-head{ font-weight:700; font-size:18px; margin-bottom:8px; }
-#cam-video{ width:100%; border-radius:10px; background:#000; }
-#cam-shot{ width:100%; border:1px solid #e5e7eb; border-radius:10px; }
-.cam-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:10px; }
-.cam-actions button{ padding:10px 14px; font-weight:700; }
-
-/* Oculta cualquier elemento con atributo hidden */
-[hidden] { display: none !important; }
-
-/* ===== Mejora de modal de cámara para tablet/móvil ===== */
-body.cam-open { overflow: hidden; }
-
-.cam-head{
-  display:flex; align-items:center; justify-content:space-between;
-  font-weight:700; font-size:18px; margin-bottom:8px;
-}
-.cam-close{
-  appearance:none; border:none; cursor:pointer;
-  width:36px; height:36px; border-radius:999px;
-  background:#111827; color:#fff; font-size:20px; line-height:36px;
-}
-
-/* Pantallas anchas: queda como antes (centrado) */
-/* Pantallas tablet/móvil: fullscreen con barra fija inferior */
-@media (max-width: 1024px){
-  .cam-modal{ padding:0; }
-  .cam-dialog{
-    width:100vw; height:100vh; border-radius:0;
-    padding:12px 12px 88px;              /* espacio para la barra inferior */
-    background:#000;                      /* entorno oscuro */
-  }
-  .cam-head{ color:#fff; margin:4px 4px 8px; }
-  #cam-video{
-    width:100%;
-    height: calc(100vh - 170px);
-    background:#000;
-    object-fit: cover;
-    border-radius:12px;
-  }
-  #cam-preview{ margin-top:8px; }
-  #cam-shot{ width:100%; height:auto; border-radius:12px; }
-
-  .cam-actions{
-    position: fixed; left:0; right:0;
-    bottom: env(safe-area-inset-bottom, 0);
-    background: rgba(17,24,39,.96);
-    display:flex; gap:12px; justify-content:space-between;
-    padding:12px 16px;
-    box-shadow: 0 -6px 24px rgba(0,0,0,.35);
-  }
-  .cam-actions button{
-    flex:1; padding:14px 0; font-size:16px; font-weight:700;
-    border-radius:12px;
-  }
-}
-
-/* ——— Estilo del barcode en pantalla (preview) ——— */
-#barcode-trabajo{
-  max-width: 60mm;   /* preview chico; en print se fija a 90mm */
-  height: auto;
+/* =========================
+   Impresión A4
+   ========================= */
+@media print {
+  body { background: #fff; }
+  .titulo, .card, .acciones, #mensaje { display: none !important; }
+  .print-area { position: static; left: 0; top: 0; display: block; }
 }

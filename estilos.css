@@ -63,6 +63,26 @@ button:hover, input[type="submit"]:hover{ filter:brightness(1.06); }
 /* Utilidad para ocultar en impresión */
 .no-print{}
 
+/* Armazón: dos campos cortos en la misma fila */
+.grid-armazon {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 12px;
+  align-items: end;
+}
+
+/* Anchos “en caracteres” para inputs cortos */
+.w-7ch  { width: 7ch;  max-width: 7ch; }
+.w-10ch { width: 10ch; max-width: 12ch; }
+
+/* (Opcional) cursor de bloqueo cuando deshabilitamos el form */
+form[aria-busy="true"] {
+  pointer-events: none;
+  opacity: 0.6;
+  cursor: progress;
+}
+
+
 /* Spinner */
 .spinner{ display:none; text-align:center; }
 .loader{

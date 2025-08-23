@@ -107,7 +107,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Botones inferiores
   const btnImp = document.getElementById("btn-imprimir");
   const btnClr = document.getElementById("btn-limpiar");
-  if (btnImp) btnImp.addEventListener("click", () => { (window.__buildPrintArea || buildPrintArea)(); window.print(); });
+
+  // (CAMBIO) Asegurar reflow antes de imprimir para evitar hoja en blanco
+  if (btnImp) btnImp.addEventListener("click", async () => {
+    try { (window.__buildPrintArea || buildPrintArea)(); } catch {}
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    window.print();
+  });
+
   if (btnClr) btnClr.addEventListener("click", limpiarFormulario);
 
   // Exponer para que guardar.js use este layout cuando elegís "Imprimir ahora"
@@ -270,9 +277,9 @@ function buildPrintArea(){
         <div class="coupon-field"><span class="coupon-strong">Seña:</span> ${money(P("sena"))}</div>
         <div class="coupon-field"><span class="coupon-strong">Saldo:</span> ${money(P("saldo"))}</div>
 
-        ${QR
-          ? `<img src="${QR}" class="qr" alt="QR">`
-          : `<div class="qr" style="display:flex;align-items:center;justify-content:center;font-size:10px;">QR</div>`
+        ${ (window.QR_URL || "")
+            ? `<img src="${window.QR_URL}" class="qr" alt="QR">`
+            : `<div class="qr" style="display:flex;align-items:center;justify-content:center;font-size:10px;">QR</div>`
         }
       </div>
 

@@ -1,64 +1,73 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Carga de receta</title>
-  <link rel="stylesheet" href="estilos.css?v=3">
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#111827">
+
+  <!-- CSS principal (prioridad tablet vertical, luego desktop) -->
+  <link rel="stylesheet" href="estilos.css?v=4" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#111827" />
+
+  <!-- SweetAlert -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
+  <!-- Overlay spinner (lo controla JS con lockForm/unlockForm) -->
   <div class="spinner" id="spinner">
     <div class="loader"></div>
     <div class="spinner-text">Cargando...</div>
   </div>
-<h2 class="titulo">Optica Cristal v23-8 11.45 </h2>
+
+  <h2 class="titulo">Optica Cristal v23-8 11.45</h2>
+
   <form id="formulario" class="card">
     <!-- Fechas -->
     <div class="grid-2">
       <label class="field">
         <span>Fecha que encarga</span>
-        <input type="text" name="fecha" id="fecha" readonly>
+        <input type="text" name="fecha" id="fecha" readonly />
       </label>
       <label class="field">
         <span>Fecha que retira (estimada)</span>
-        <input type="text" name="fecha_retira" id="fecha_retira" readonly>
+        <input type="text" name="fecha_retira" id="fecha_retira" readonly />
       </label>
     </div>
 
     <!-- Entrega -->
     <div class="row">
       <span class="muted">Días estimados de entrega:</span>
-      <label><input type="radio" name="entrega" value="7" checked> Stock <span class="sub">(7 días aprox)</span></label>
-      <label><input type="radio" name="entrega" value="3"> Urgente <span class="sub">(3 días aprox)</span></label>
-      <label><input type="radio" name="entrega" value="15"> Laboratorio <span class="sub">(15 días aprox)</span></label>
+      <label><input type="radio" name="entrega" value="7" checked /> Stock <span class="sub">(7 días aprox)</span></label>
+      <label><input type="radio" name="entrega" value="3" /> Urgente <span class="sub">(3 días aprox)</span></label>
+      <label><input type="radio" name="entrega" value="15" /> Laboratorio <span class="sub">(15 días aprox)</span></label>
     </div>
 
     <!-- Identificación -->
     <div class="grid-4">
       <label class="field">
         <span>Número de trabajo</span>
-        <input type="text" name="numero_trabajo" id="numero_trabajo" placeholder="Auto por teléfono" required>
+        <input type="text" name="numero_trabajo" id="numero_trabajo" placeholder="Auto por teléfono" required />
       </label>
 
       <label class="field">
         <span>DNI</span>
         <div class="dni-wrapper">
-          <input type="text" name="dni" id="dni" required>
+          <input type="text" name="dni" id="dni" required />
           <span id="dni-loading" class="inline-spinner" hidden></span>
         </div>
       </label>
 
       <label class="field">
         <span>Apellido y nombre</span>
-        <input type="text" name="nombre" id="nombre" required>
+        <input type="text" name="nombre" id="nombre" required />
       </label>
 
       <label class="field">
         <span>Número de teléfono</span>
-        <input type="text" name="telefono" id="telefono" required>
+        <input type="text" name="telefono" id="telefono" required />
       </label>
     </div>
 
@@ -66,64 +75,77 @@
     <div class="grid-2">
       <label class="field">
         <span>Tipo de cristal</span>
-        <input type="text" name="cristal" id="cristal" list="lista-cristales" required>
+        <input type="text" name="cristal" id="cristal" list="lista-cristales" required />
         <datalist id="lista-cristales"></datalist>
       </label>
 
       <label class="field">
         <span>Precio</span>
-        <input type="text" id="precio_cristal" name="precio_cristal" placeholder="">
+        <input type="text" id="precio_cristal" name="precio_cristal" placeholder="" />
       </label>
     </div>
 
-    <!-- Armazón -->
+    <!-- Armazón (número + precio) -->
     <div class="grid-armazon">
-    <label class="field">
-      <span>Número de armazón (si tiene)</span>
-      <div class="dni-wrapper">
-        <input type="text" name="numero_armazon" id="numero_armazon"
-          inputmode="numeric" pattern="\d{5,7}" maxlength="7"
-             class="w-7ch" placeholder=" N Anteojo">        
-        <span id="armazon-loading" class="inline-spinner" hidden></span>
-      </div>
-    </label>
-
       <label class="field">
-    <span>Precio</span>
-    <input type="text" id="precio_armazon" name="precio_armazon" class="w-10ch">
-  </label>
-</div>
-
-    <div class="grid-2">
-      <label class="field">
-        <span>Modelo de armazón</span>
-        <input type="text" name="armazon_detalle" id="armazon_detalle">
+        <span>Número de armazón (si tiene)</span>
+        <div class="dni-wrapper">
+          <input
+            type="text"
+            name="numero_armazon"
+            id="numero_armazon"
+            inputmode="numeric"
+            pattern="\d{5,7}"
+            maxlength="7"
+            class="w-7ch"
+            placeholder="N° Anteojo"
+          />
+          <span id="armazon-loading" class="inline-spinner" hidden></span>
+        </div>
       </label>
 
-      
+      <label class="field">
+        <span>Precio</span>
+        <input type="text" id="precio_armazon" name="precio_armazon" class="w-10ch" />
+      </label>
+    </div>
+
+    <!-- Modelo de armazón (full ancho) -->
+    <label class="field">
+      <span>Modelo de armazón</span>
+      <input type="text" name="armazon_detalle" id="armazon_detalle" />
+    </label>
+
+    <!-- Otro concepto -->
     <div class="grid-2">
       <label class="field">
         <span>Otro concepto</span>
-        <input type="text" name="otro_concepto" id="otro_concepto" placeholder="Obra social/descuento/recargo">
+        <input
+          type="text"
+          name="otro_concepto"
+          id="otro_concepto"
+          placeholder="Obra social/descuento/recargo"
+        />
       </label>
       <label class="field">
         <span>Precio</span>
-        <input type="text" id="precio_otro" name="precio_otro">
+        <input type="text" id="precio_otro" name="precio_otro" />
       </label>
     </div>
 
+    <!-- Descripción / Tipo / DR -->
     <div class="grid-3">
       <label class="field">
         <span>Tipo de visión</span>
-        <input type="text" name="descripcion" placeholder="Monof/Multi/Ocupacional/Bif">
+        <input type="text" name="descripcion" placeholder="Monof/Multi/Ocupacional/Bif" />
       </label>
       <label class="field">
         <span>Otra aclaración</span>
-        <input type="text" name="tipo" placeholder="Otros">
+        <input type="text" name="tipo" placeholder="Otros" />
       </label>
       <label class="field">
         <span>DR (oculista)</span>
-        <input type="text" name="dr" id="dr" placeholder="Ej: Dr. Oculista">
+        <input type="text" name="dr" id="dr" placeholder="Ej: Dr. Oculista" />
       </label>
     </div>
 
@@ -133,23 +155,31 @@
       <div class="fila">
         <select name="od_esf" id="od_esf"></select>
         <select name="od_cil" id="od_cil"></select>
-        <input type="text" name="od_eje" id="od_eje" placeholder="EJE">
+        <input type="text" name="od_eje" id="od_eje" placeholder="EJE" />
       </div>
 
       <h3>OI</h3>
       <div class="fila">
         <select name="oi_esf" id="oi_esf"></select>
         <select name="oi_cil" id="oi_cil"></select>
-        <input type="text" name="oi_eje" id="oi_eje" placeholder="EJE">
+        <input type="text" name="oi_eje" id="oi_eje" placeholder="EJE" />
       </div>
-      <div class="fila">
-  <input type="text" name="dnp" id="dnp" placeholder="DNP OD/OI"
-         required inputmode="numeric" maxlength="5" pattern="\d{2}\/\d{2}">
-</div>
-
 
       <div class="fila">
-        <input type="text" name="add" id="add" placeholder="ADD">
+        <input
+          type="text"
+          name="dnp"
+          id="dnp"
+          placeholder="DNP OD/OI"
+          required
+          inputmode="numeric"
+          maxlength="5"
+          pattern="\d{2}\/\d{2}"
+        />
+      </div>
+
+      <div class="fila">
+        <input type="text" name="add" id="add" placeholder="ADD" />
       </div>
     </div>
 
@@ -158,8 +188,9 @@
       <span>Fotos del anteojo</span>
       <div class="row" style="gap:10px; align-items:center;">
         <button type="button" id="btn-foto">📷 Tomar foto</button>
+        <button type="button" id="btn-galeria">📁 Galería</button>
         <button type="button" id="btn-generar-pack">📄 Generar PDF (resumen + fotos)</button>
-        <input type="hidden" id="pack_url" name="pack_url">
+        <input type="hidden" id="pack_url" name="pack_url" />
       </div>
       <div id="galeria-fotos" class="galeria"></div>
     </div>
@@ -167,41 +198,48 @@
     <!-- Totales -->
     <div class="totales">
       <label class="field">
+        <span>FORMA DE PAGO</span>
+        <input type="text" name="forma_pago" id="forma_pago" placeholder="" />
+      </label>
+      <label class="field">
         <span>TOTAL</span>
-        <input type="text" id="total" name="total" readonly>
+        <input type="text" id="total" name="total" readonly />
       </label>
       <label class="field">
         <span>SEÑA</span>
-        <input type="text" id="sena" name="sena">
+        <input type="text" id="sena" name="sena" />
       </label>
       <label class="field">
         <span>SALDO</span>
-        <input type="text" id="saldo" name="saldo" readonly>
+        <input type="text" id="saldo" name="saldo" readonly />
+      </label>
+      <label class="field">
+        <span>Nombre del vendedor</span>
+        <input type="text" name="vendedor" id="vendedor" placeholder="" />
       </label>
     </div>
 
-    <!-- Acciones -->
-    <div class="grid-3">
-      <input type="text" name="vendedor" id="vendedor" placeholder="Nombre del vendedor">
-      <input type="text" name="forma_pago" id="forma_pago" placeholder="Forma de pago">
-      <div class="row end">
-        <input type="submit" value="Guardar">
-      </div>
+    <!-- Acciones dentro de la tarjeta (solo el botón Guardar) -->
+    <div class="row end" style="margin-top:6px;">
+      <input type="submit" value="Guardar" />
     </div>
   </form>
 
-  <!-- Área para IMPRESIÓN: se completa por JS y solo se muestra al imprimir -->
+  <!-- Área para IMPRESIÓN (se rellena por JS) -->
   <div id="print-area" class="print-area" aria-hidden="true"></div>
 
+  <!-- Acciones inferiores -->
   <div class="acciones">
-    <button type="button" id="btn-imprimir">🖨️ Imprimir</button>
-    <button type="button" id="btn-limpiar">🧹 Limpiar</button>
-    <a href="historial/index.html" class="btn-secondary">Ver historial</a>
-
+    <div class="btns-left">
+      <button type="button" id="btn-imprimir">🖨️ Imprimir</button>
+      <button type="button" id="btn-limpiar">🧹 Limpiar</button>
+      <a href="historial/index.html" class="btn-secondary">Historial</a>
+    </div>
   </div>
 
   <p id="mensaje" class="muted"></p>
 
+  <!-- Modal de cámara -->
   <div id="cam-modal" class="cam-modal" hidden>
     <div class="cam-dialog">
       <div class="cam-head">
@@ -215,7 +253,6 @@
         <canvas id="cam-shot"></canvas>
       </div>
 
-      <!-- Barra fija inferior con botones grandes -->
       <div class="cam-actions">
         <button type="button" id="cam-tomar">Tomar foto</button>
         <button type="button" id="cam-usar" disabled>Usar esta</button>
@@ -224,15 +261,15 @@
     </div>
   </div>
 
-  <!-- JsBarcode para generar el código de barras en la impresión -->
+  <!-- Código de barras para impresión (si lo usás) -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 
-  <!-- Tu JS principal -->
+  <!-- JS principal -->
   <script type="module" src="js/main.js"></script>
   <script type="module" src="js/generarPack.js"></script>
 
-
   <script>
+    // Service Worker (PWA)
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("./service-worker.js").catch(console.error);

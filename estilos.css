@@ -1,7 +1,6 @@
-/* ====== Óptica Cristal – UI limpio (mockup) ======
-   • Mobile‑first → tablet → desktop
-   • No requiere tocar HTML ni JS
-   • Ajusta tamaños, grillas, tipografía, botones y modal cámara
+/* ====== Óptica Cristal – UI limpio (mockup) v2 ======
+   Ajustes finos: título 20px, radios 12px, botones de Fotos oscuros,
+   placeholder en galería cuando está vacía, botón Guardar = 48px
 ==================================================== */
 
 :root{
@@ -30,18 +29,10 @@ body{
 }
 
 /* ===== Título ===== */
-.titulo{ max-width:1180px; margin:14px auto 6px; padding:0 10px; font-size:18px; font-weight:700; }
+.titulo{ max-width:1180px; margin:14px auto 6px; padding:0 10px; font-size:20px; font-weight:700; }
 
 /* ===== Tarjeta principal ===== */
-.card{
-  max-width:1180px;  /* desktop */
-  margin:8px auto;
-  background:var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding:16px;
-  border:1px solid var(--line);
-}
+.card{ max-width:1180px; margin:8px auto; background:var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding:16px; border:1px solid var(--line); }
 @media (max-width: 1024px){ .card{ max-width:900px; } }
 @media (max-width: 640px){ .card{ margin:8px; padding:12px; } }
 
@@ -49,9 +40,8 @@ body{
 .field{ display:flex; flex-direction:column; gap:6px; }
 .field > span{ font-size:12px; color:var(--muted); letter-spacing:.2px; }
 
-input[type="text"], input[type="number"], input[type="date"], select {
-  height:36px; padding:8px 10px; font-size:13px; border-radius:10px;
-  border:1px solid #CFD6E4; outline:none; background:#fff; color:var(--text);
+input[type="text"], input[type="number"], input[type="date"], select{
+  height:36px; padding:8px 10px; font-size:13px; border-radius:12px; border:1px solid #CFD6E4; outline:none; background:#fff; color:var(--text);
 }
 input::placeholder{ color:#9aa4b2; }
 input:focus, select:focus{ border-color:var(--primary); box-shadow:0 0 0 3px rgba(27,100,242,.15); }
@@ -65,40 +55,28 @@ input:focus, select:focus{ border-color:var(--primary); box-shadow:0 0 0 3px rgb
 .grid-2{ grid-template-columns: 1fr 1fr; }
 .grid-3{ grid-template-columns: 1fr 1fr 1fr; }
 .grid-4{ grid-template-columns: repeat(4, 1fr); }
-@media (max-width: 980px){
-  .grid-4{ grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 640px){
-  .grid-2, .grid-3, .grid-4{ grid-template-columns: 1fr; }
-}
+@media (max-width: 980px){ .grid-4{ grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px){ .grid-2, .grid-3, .grid-4{ grid-template-columns: 1fr; } }
 
 /* Ajustes específicos del mockup */
-/* Producto: cristal ancho + precio angosto */
 .grid-2.block-cristal{ grid-template-columns: 1fr 180px; }
-/* Armazón: número angosto + precio angosto */
 .grid-armazon{ display:grid; gap:12px; grid-template-columns: 220px 180px; }
 @media (max-width: 640px){ .grid-armazon{ grid-template-columns: 1fr; } }
 
-/* Línea de DNI/Armazón con spinner inline */
 .dni-wrapper{ position:relative; display:flex; align-items:center; gap:8px; }
 .inline-spinner{ width:16px; height:16px; border-radius:50%; border:3px solid #cfd6e4; border-top-color: var(--primary); display:inline-block; animation: spin 1s linear infinite; }
 @keyframes spin{ to { transform: rotate(360deg); } }
 
-/* Fila receta */
 .receta{ margin-top:8px; }
 .receta h3{ margin:12px 0 6px; font-size:13px; color:#374151; letter-spacing:.3px; }
 .receta .fila{ display:grid; gap:10px; grid-template-columns: 140px 140px 120px; }
 @media (max-width:640px){ .receta .fila{ grid-template-columns: 1fr 1fr; } }
 
-/* Acciones internas (Guardar) */
 .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 .row.end{ justify-content:flex-end; }
 
 /* Botones */
-button, input[type="submit"], .btn-secondary{
-  appearance:none; border:1px solid transparent; border-radius:10px; cursor:pointer;
-  height:38px; padding:0 14px; font-weight:700; font-size:13px; color:#fff; background:var(--primary);
-}
+button, input[type="submit"], .btn-secondary{ appearance:none; border:1px solid transparent; border-radius:10px; cursor:pointer; height:38px; padding:0 14px; font-weight:700; font-size:13px; color:#fff; background:var(--primary); }
 button:hover, input[type="submit"]:hover, .btn-secondary:hover{ filter:brightness(1.05); }
 button:active, input[type="submit"]:active{ transform: translateY(1px); }
 .btn-secondary{ background:#111827; color:#e5e7eb; border-color:#1f2937; text-decoration:none; display:inline-flex; align-items:center; }
@@ -108,26 +86,26 @@ button:active, input[type="submit"]:active{ transform: translateY(1px); }
 @media (max-width:980px){ .totales{ grid-template-columns: 1fr 1fr; } }
 @media (max-width:640px){ .totales{ grid-template-columns: 1fr; } }
 
-/* Texto secundario */
 .muted{ color:var(--muted); font-size:12px; max-width:1180px; margin:6px auto; padding:0 10px; }
 .sub{ color:#9aa4b2; font-size:12px; }
 
-/* Galería de fotos (miniaturas cuadradas) */
+/* Galería de fotos */
 .galeria{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
 .galeria img, .galeria canvas, .galeria .ph{ width:130px; height:130px; border-radius:10px; object-fit:cover; border:1px solid #d7ddea; background:#f4f7ff; position:relative; }
 .galeria .ph{ display:grid; place-items:center; color:#94a3b8; }
+.galeria:empty{ min-height:140px; border:1px dashed #d7ddea; border-radius:10px; display:grid; place-items:center; color:#94a3b8; }
+.galeria:empty::before{ content:"Sin fotos todavía"; font-size:12px; }
 
-/* Acciones inferiores (imprimir/limpiar/historial) */
+/* Acciones inferiores */
 .acciones{ max-width:1180px; margin:0 auto; padding:8px 10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .btns-left{ display:flex; gap:8px; flex-wrap:wrap; }
 
-/* ===== Spinner de bloqueo ===== */
+/* Spinner de bloqueo */
 .spinner{ position:fixed; inset:0; background:rgba(255,255,255,.65); display:none; align-items:center; justify-content:center; flex-direction:column; z-index:9999; }
 .spinner .loader{ width:44px; height:44px; border-radius:50%; border:5px solid #cfd6e4; border-top-color:var(--primary); animation:spin 1s linear infinite; }
 .spinner .spinner-text{ margin-top:10px; font-weight:600; color:#374151; }
-/* Mostrar con JS → element.style.display = 'flex' */
 
-/* ===== Modal cámara ===== */
+/* Modal cámara */
 .cam-modal[hidden]{ display:none; }
 .cam-modal{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:grid; place-items:center; z-index:9998; padding:16px; }
 .cam-dialog{ width:min(960px,100%); background:#0f172a; color:#e5e7eb; border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.45); padding:12px; border:1px solid #1f2a44; }
@@ -142,7 +120,7 @@ button:active, input[type="submit"]:active{ transform: translateY(1px); }
 .cam-actions #cam-usar{ background:var(--ok); border-color:#0e9e79; }
 .cam-actions #cam-cancelar{ background:var(--danger); border-color:#dc2626; }
 
-/* ===== Impresión (área) – mínimos para no romper ===== */
+/* Impresión */
 .print-area{ display:none; }
 @media print{
   body{ background:#fff; }
@@ -150,6 +128,9 @@ button:active, input[type="submit"]:active{ transform: translateY(1px); }
   .print-area{ display:block !important; }
 }
 
-
-/* === Ajuste pedido: botón Guardar a 48px === */
+/* Altura específica del botón Guardar */
 input[type="submit"]{ height:48px !important; }
+
+/* Botones de Fotos (IDs) → estilo oscuro */
+#btn-foto, #btn-galeria, #btn-generar-pack{ background:#111827 !important; color:#e5e7eb !important; border-color:#1f2937 !important; }
+#btn-foto:hover, #btn-galeria:hover, #btn-generar-pack:hover{ filter:brightness(1.06); }

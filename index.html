@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-  <h2 class="titulo">Optica Cristal v23-8 11 </h2>
+  <h2 class="titulo">Optica Cristal v23-8 11.45 </h2>
 
   <div class="spinner" id="spinner">
     <div class="loader"></div>
@@ -79,13 +79,22 @@
     </div>
 
     <!-- Armazón -->
+    <div class="grid-armazon">
     <label class="field">
-      <span>Número de armazón (opcional)</span>
+      <span>Número de armazón (si tiene)</span>
       <div class="dni-wrapper">
-        <input type="text" name="numero_armazon" id="numero_armazon">
+        <input type="text" name="numero_armazon" id="numero_armazon"
+          inputmode="numeric" pattern="\d{5,7}" maxlength="7"
+             class="w-7ch" placeholder=" N Anteojo">        
         <span id="armazon-loading" class="inline-spinner" hidden></span>
       </div>
     </label>
+
+      <label class="field">
+    <span>Precio</span>
+    <input type="text" id="precio_armazon" name="precio_armazon" class="w-10ch">
+  </label>
+</div>
 
     <div class="grid-2">
       <label class="field">
@@ -93,12 +102,7 @@
         <input type="text" name="armazon_detalle" id="armazon_detalle">
       </label>
 
-      <label class="field">
-        <span>Precio</span>
-        <input type="text" id="precio_armazon" name="precio_armazon">
-      </label>
-    </div>
-
+      
     <div class="grid-2">
       <label class="field">
         <span>Otro concepto</span>
@@ -140,6 +144,11 @@
         <select name="oi_cil" id="oi_cil"></select>
         <input type="text" name="oi_eje" id="oi_eje" placeholder="EJE">
       </div>
+      <div class="fila">
+  <input type="text" name="dnp" id="dnp" placeholder="DNP OD/OI"
+         required inputmode="numeric" maxlength="5" pattern="\d{2}\/\d{2}">
+</div>
+
 
       <div class="fila">
         <input type="text" name="add" id="add" placeholder="ADD">

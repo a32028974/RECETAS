@@ -4,185 +4,155 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Carga de receta</title>
-
-  <!-- CSS principal -->
-  <link rel="stylesheet" href="estilos.css?v=7" />
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="estilos.css?v=8" />
   <meta name="theme-color" content="#111827" />
-
-  <!-- SweetAlert -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Overrides específicos para TABLET según tu pedido -->
+  <style>
+    /* Rango tablet */
+    @media (min-width: 768px) and (max-width: 1024px){
+      /* Filas compactas */
+      .row-12 input, .row-12 .seg-btn, .row-12 select { height:12px !important; font-size:12px !important; padding:0 6px !important; }
+      .row-22 input, .row-22 select { height:22px !important; font-size:12px !important; }
+      .row-25 input, .row-25 select { height:25px !important; font-size:12px !important; }
+      .row-28 input, .row-28 select { height:28px !important; font-size:12px !important; }
+
+      /* Fila 1: Título (50%) | Nº trabajo (50%) */
+      .r1{ display:grid; grid-template-columns: 50% 50%; align-items:center; gap:12px; }
+      .r1 .card-title{ font-size:12px; font-weight:700; margin:0; }
+      .nro-wrap{ display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+      .nro-wrap label{ font-size:12px; color:#6b7280; }
+      #numero_trabajo{ height:12px; font-size:12px; padding:0 6px; border-radius:6px; border:1px solid #CFD6E4; background:#fff; }
+
+      /* Fila 2: Fecha que encarga | radios | Fecha que retira */
+      .r2{ display:grid; grid-template-columns: 18% 1fr 18%; align-items:center; gap:12px; }
+      #fecha{ width: 10ch; height:12px; font-size:12px; padding:0 6px; }
+      .radios{ display:flex; align-items:center; gap:14px; font-size:12px; }
+      .radios label{ display:inline-flex; align-items:center; gap:6px; font-size:12px; }
+      #fecha_retira{ width: 10ch; height:12px; font-size:12px; padding:0 6px; }
+
+      /* Fila 3: Vendedor(20) | DNI(20) | Apellido y nombre(40) | Tel(20) */
+      .r3{ display:grid; grid-template-columns: 20% 20% 40% 20%; gap:12px; align-items:center; }
+
+      /* Fila 4: Cristal(92) | Precio(8) */
+      .r4{ display:grid; grid-template-columns: 92% 8%; gap:12px; align-items:center; }
+
+      /* Fila 5: Nº Ar (12) | Modelo(80) | Precio(8) */
+      .r5{ display:grid; grid-template-columns: 12% 80% 8%; gap:12px; align-items:center; }
+
+      /* Fila 6: Otro concepto(92) | Precio(8) */
+      .r6{ display:grid; grid-template-columns: 92% 8%; gap:12px; align-items:center; }
+
+      /* Fila 7 (OD + Visión + DR): ESF(14) CIL(14) EJE(12) | Visión(35) | DR(15) */
+      .r7{ display:grid; grid-template-columns: 14% 14% 12% 35% 15%; gap:12px; align-items:center; }
+      .seg{ display:inline-flex; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; background:#f3f4f6; }
+      .seg-btn{ appearance:none; border:0; background:transparent; padding:0 8px; height:12px; line-height:12px; font-weight:700; font-size:12px; cursor:pointer; }
+      .seg-btn.active{ background:#fff; box-shadow:0 0 0 2px rgba(27,100,242,.12) inset; }
+
+      /* Fila 8 (OI + DNP/ADD + Otra aclaración): ESF(14) CIL(14) EJE(12) | DNP/ADD(15, apilado) | Otra (35) */
+      .r8{ display:grid; grid-template-columns: 14% 14% 12% 15% 35%; gap:12px; align-items:center; }
+      .stack{ display:flex; flex-direction:column; gap:4px; }
+
+      /* Badge EJE compacto */
+      .badge-eje{ font-size:12px; color:#6b7280; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:8px; padding:2px 6px; white-space:nowrap; }
+      .eje-wrap{ display:flex; align-items:center; gap:6px; }
+
+      /* Galería: igual que antes */
+    }
+  </style>
 </head>
 <body>
-  <!-- Overlay spinner (lo controla JS con lockForm/unlockForm) -->
-  <div class="spinner" id="spinner">
-    <div class="loader"></div>
-    <div class="spinner-text">Cargando...</div>
-  </div>
+  <div class="spinner" id="spinner"><div class="loader"></div><div class="spinner-text">Cargando...</div></div>
 
   <form id="formulario" class="card">
-    <!-- ===== Header de la tarjeta (mockup) ===== -->
-    <div class="card-head">
+    <!-- R1: título + nro trabajo (12px alto) -->
+    <div class="r1 row-12">
       <h2 class="card-title">Optica Cristal</h2>
-      <div class="pill">
-        <span>Número de trabajo</span>
-        <input type="text" name="numero_trabajo" id="numero_trabajo" placeholder="Auto por teléfono" required />
-      </div>
-      <div class="pill">
-        <span>Fecha que retira (estimada)</span>
-        <input type="text" name="fecha_retira" id="fecha_retira" readonly />
+      <div class="nro-wrap">
+        <label for="numero_trabajo">Número de trabajo</label>
+        <input type="text" id="numero_trabajo" name="numero_trabajo" placeholder="Auto por teléfono" />
       </div>
     </div>
 
-    <!-- ===== Fechas ===== -->
-    <div class="grid-2">
+    <!-- R2: fecha encarga + radios + fecha retira (12px alto) -->
+    <div class="r2 row-12">
       <label class="field">
         <span>Fecha que encarga</span>
-        <input type="text" name="fecha" id="fecha" readonly />
+        <input type="text" id="fecha" name="fecha" readonly />
       </label>
-      <div class="field">
-        <span>&nbsp;</span>
+      <div class="radios">
+        <label><input type="radio" name="entrega" value="7" checked /> Stock <span class="sub">(7 días aprox)</span></label>
+        <label><input type="radio" name="entrega" value="3" /> Urgente <span class="sub">(3 días aprox)</span></label>
+        <label><input type="radio" name="entrega" value="15" /> Laboratorio <span class="sub">(15 días aprox)</span></label>
       </div>
-    </div>
-
-    <!-- ===== Entrega ===== -->
-    <div class="row">
-      <span class="muted">Días estimados de entrega:</span>
-      <label><input type="radio" name="entrega" value="7" checked /> Stock <span class="sub">(7 días aprox)</span></label>
-      <label><input type="radio" name="entrega" value="3" /> Urgente <span class="sub">(3 días aprox)</span></label>
-      <label><input type="radio" name="entrega" value="15" /> Laboratorio <span class="sub">(15 días aprox)</span></label>
-    </div>
-
-    <!-- ===== Identificación ===== -->
-    <div class="grid-4">
       <label class="field">
-        <span>Nombre del vendedor</span>
-        <input type="text" name="vendedor" id="vendedor" placeholder="" />
-      </label>
-      <label class="field">
-        <span>DNI</span>
-        <div class="dni-wrapper">
-          <input type="text" name="dni" id="dni" required />
-          <span id="dni-loading" class="inline-spinner" hidden></span>
-        </div>
-      </label>
-      <label class="field">
-        <span>Apellido y nombre</span>
-        <input type="text" name="nombre" id="nombre" required />
-      </label>
-      <label class="field">
-        <span>Número de teléfono</span>
-        <input type="text" name="telefono" id="telefono" required />
+        <span>Fecha que retira (estimada)</span>
+        <input type="text" id="fecha_retira" name="fecha_retira" readonly />
       </label>
     </div>
 
-    <!-- ===== Producto ===== -->
-    <div class="grid-2 block-cristal">
-      <label class="field">
-        <span>Tipo de cristal</span>
-        <input type="text" name="cristal" id="cristal" list="lista-cristales" required />
-        <datalist id="lista-cristales"></datalist>
+    <!-- R3: vendedor/dni/nombre/teléfono (22px) -->
+    <div class="r3 row-22">
+      <label class="field"><span>Nombre del vendedor</span><input type="text" id="vendedor" name="vendedor" /></label>
+      <label class="field"><span>DNI</span>
+        <div class="dni-wrapper"><input type="text" id="dni" name="dni" /><span id="dni-loading" class="inline-spinner" hidden></span></div>
       </label>
-      <label class="field">
-        <span>Precio</span>
-        <input type="text" id="precio_cristal" name="precio_cristal" />
-      </label>
+      <label class="field"><span>Apellido y nombre</span><input type="text" id="nombre" name="nombre" /></label>
+      <label class="field"><span>Número de teléfono</span><input type="text" id="telefono" name="telefono" /></label>
     </div>
 
-    <!-- ===== Armazón ===== -->
-    <div class="grid-armazon">
-      <label class="field">
-        <span>Número de armazón (si tiene)</span>
-        <div class="dni-wrapper">
-          <input
-            type="text"
-            name="numero_armazon"
-            id="numero_armazon"
-            inputmode="numeric"
-            pattern="\d{5,7}"
-            maxlength="7"
-            class="w-7ch"
-            placeholder="N° Anteojo"
-          />
-          <span id="armazon-loading" class="inline-spinner" hidden></span>
-        </div>
-      </label>
-      <label class="field">
-        <span>Precio</span>
-        <input type="text" id="precio_armazon" name="precio_armazon" class="w-10ch" />
-      </label>
+    <!-- R4: cristal (92) + precio (8) (25px) -->
+    <div class="r4 row-25">
+      <label class="field"><span>Tipo de cristal</span><input type="text" id="cristal" name="cristal" list="lista-cristales" /><datalist id="lista-cristales"></datalist></label>
+      <label class="field"><span>Precio</span><input type="text" id="precio_cristal" name="precio_cristal" /></label>
     </div>
 
-    <!-- Modelo de armazón (full ancho) -->
-    <label class="field">
-      <span>Modelo de armazón</span>
-      <input type="text" name="armazon_detalle" id="armazon_detalle" />
-    </label>
-
-    <!-- ===== Otro concepto ===== -->
-    <div class="grid-2">
-      <label class="field">
-        <span>Otro concepto</span>
-        <input type="text" name="otro_concepto" id="otro_concepto" placeholder="Obra social/descuento/recargo" />
+    <!-- R5: Nº ar (12) + modelo (80) + precio (8) (25px) -->
+    <div class="r5 row-25">
+      <label class="field"><span>Número de armazón (si tiene)</span>
+        <div class="dni-wrapper"><input type="text" id="numero_armazon" name="numero_armazon" inputmode="numeric" placeholder="N° Ar" /><span id="armazon-loading" class="inline-spinner" hidden></span></div>
       </label>
-      <label class="field">
-        <span>Precio</span>
-        <input type="text" id="precio_otro" name="precio_otro" />
-      </label>
+      <label class="field"><span>Modelo de armazón</span><input type="text" id="armazon_detalle" name="armazon_detalle" /></label>
+      <label class="field"><span>Precio</span><input type="text" id="precio_armazon" name="precio_armazon" /></label>
     </div>
 
-    <!-- ===== Descripción / Tipo / DR ===== -->
-    <div class="grid-3">
-      <label class="field">
-        <span>Tipo de visión</span>
+    <!-- R6: Otro concepto (92) + precio (8) (25px) -->
+    <div class="r6 row-25">
+      <label class="field"><span>Otro concepto</span><input type="text" id="otro_concepto" name="otro_concepto" placeholder="Obra social/descuento/recargo" /></label>
+      <label class="field"><span>Precio</span><input type="text" id="precio_otro" name="precio_otro" /></label>
+    </div>
+
+    <!-- R7: OD + Tipo de visión + DR (28px) -->
+    <div class="r7 row-28">
+      <label class="field"><span>OD – ESF</span><select id="od_esf" name="od_esf"></select></label>
+      <label class="field"><span>OD – CIL</span><select id="od_cil" name="od_cil"></select></label>
+      <label class="field"><span>&nbsp;</span><div class="eje-wrap"><span class="badge-eje">EJE</span><input type="text" id="od_eje" name="od_eje" inputmode="numeric" placeholder="0–180" /></div></label>
+
+      <label class="field"><span>Tipo de visión</span>
         <div class="seg" role="group" aria-label="Tipo de visión">
           <button type="button" class="seg-btn" data-value="PROGRESIVO">Progresivo</button>
           <button type="button" class="seg-btn" data-value="BIFOCAL">Bifocal</button>
           <button type="button" class="seg-btn" data-value="MONOFOCAL">Monofocal</button>
         </div>
-        <input type="hidden" name="descripcion" id="descripcion" />
+        <input type="hidden" id="descripcion" name="descripcion" />
       </label>
-      <label class="field">
-        <span>Otra aclaración</span>
-        <input type="text" name="tipo" placeholder="Otros" />
-      </label>
-      <label class="field">
-        <span>DR (oculista)</span>
-        <input type="text" name="dr" id="dr" placeholder="Ej: Dr. Oculista" />
-      </label>
+      <label class="field"><span>DR (oculista)</span><input type="text" id="dr" name="dr" placeholder="Ej: Dr. Oculista" /></label>
     </div>
 
-    <!-- ===== Receta ===== -->
-    <div class="receta">
-      <h3>OD</h3>
-      <div class="fila">
-        <select name="od_esf" id="od_esf"></select>
-        <select name="od_cil" id="od_cil"></select>
-        <div class="eje-wrap">
-          <span class="badge-eje">EJE</span>
-          <input type="text" name="od_eje" id="od_eje" inputmode="numeric" placeholder="0–180" />
-        </div>
+    <!-- R8: OI + (DNP/ADD) + Otra aclaración (28px) -->
+    <div class="r8 row-28">
+      <label class="field"><span>OI – ESF</span><select id="oi_esf" name="oi_esf"></select></label>
+      <label class="field"><span>OI – CIL</span><select id="oi_cil" name="oi_cil"></select></label>
+      <label class="field"><span>&nbsp;</span><div class="eje-wrap"><span class="badge-eje">EJE</span><input type="text" id="oi_eje" name="oi_eje" inputmode="numeric" placeholder="0–180" /></div></label>
+      <div class="stack">
+        <label class="field"><span>DNP OD/OI</span><input type="text" id="dnp" name="dnp" placeholder="" /></label>
+        <label class="field"><span>ADD</span><input type="text" id="add" name="add" placeholder="" /></label>
       </div>
-
-      <h3>OI</h3>
-      <div class="fila">
-        <select name="oi_esf" id="oi_esf"></select>
-        <select name="oi_cil" id="oi_cil"></select>
-        <div class="eje-wrap">
-          <span class="badge-eje">EJE</span>
-          <input type="text" name="oi_eje" id="oi_eje" inputmode="numeric" placeholder="0–180" />
-        </div>
-      </div>
-
-      <div class="fila">
-        <input type="text" name="dnp" id="dnp" placeholder="DNP OD/OI" />
-        <input type="text" name="add" id="add" placeholder="ADD" />
-      </div>
+      <label class="field"><span>Otra aclaración</span><input type="text" id="tipo" name="tipo" placeholder="Otros" /></label>
     </div>
 
-    <!-- ===== Fotos + Pack PDF ===== -->
+    <!-- Fotos / PDF -->
     <div class="field">
       <span>Fotos del anteojo</span>
       <div class="row" style="gap:10px; align-items:center;">
@@ -195,36 +165,18 @@
       <div id="galeria-fotos" class="galeria"></div>
     </div>
 
-    <!-- ===== Totales ===== -->
+    <!-- Totales -->
     <div class="totales">
-      <label class="field">
-        <span>FORMA DE PAGO</span>
-        <input type="text" id="forma_pago" name="forma_pago" />
-      </label>
-      <label class="field">
-        <span>TOTAL</span>
-        <input type="text" id="total" name="total" readonly />
-      </label>
-      <label class="field">
-        <span>SEÑA</span>
-        <input type="text" id="sena" name="sena" />
-      </label>
-      <label class="field">
-        <span>SALDO</span>
-        <input type="text" id="saldo" name="saldo" readonly />
-      </label>
+      <label class="field"><span>FORMA DE PAGO</span><input type="text" id="forma_pago" name="forma_pago" /></label>
+      <label class="field"><span>TOTAL</span><input type="text" id="total" name="total" readonly /></label>
+      <label class="field"><span>SEÑA</span><input type="text" id="sena" name="sena" /></label>
+      <label class="field"><span>SALDO</span><input type="text" id="saldo" name="saldo" readonly /></label>
     </div>
-
-    <!-- Acciones dentro de la tarjeta (solo el botón Guardar) -->
-    <div class="row end" style="margin-top:6px;">
-      <input type="submit" value="Guardar" />
-    </div>
+    <div class="row end" style="margin-top:6px;"><input type="submit" value="Guardar" /></div>
   </form>
 
-  <!-- Área para IMPRESIÓN -->
   <div id="print-area" class="print-area" aria-hidden="true"></div>
 
-  <!-- Acciones inferiores -->
   <div class="acciones">
     <div class="btns-left">
       <button type="button" id="btn-imprimir">🖨️ Imprimir</button>
@@ -233,17 +185,12 @@
     </div>
   </div>
 
-  <!-- ===== Modal de cámara ===== -->
+  <!-- Modal cámara (mismo que antes) -->
   <div id="cam-modal" class="cam-modal" hidden>
     <div class="cam-dialog">
-      <div class="cam-head">
-        <span>Cámara</span>
-        <button type="button" id="cam-close-x" class="cam-close" aria-label="Cerrar">✕</button>
-      </div>
+      <div class="cam-head"><span>Cámara</span><button type="button" id="cam-close-x" class="cam-close" aria-label="Cerrar">✕</button></div>
       <video id="cam-video" playsinline autoplay muted></video>
-      <div id="cam-preview" style="display:none; margin-top:6px;">
-        <canvas id="cam-shot"></canvas>
-      </div>
+      <div id="cam-preview" style="display:none; margin-top:6px;"><canvas id="cam-shot"></canvas></div>
       <div class="cam-actions">
         <button type="button" id="cam-tomar">Tomar foto</button>
         <button type="button" id="cam-usar" disabled>Usar esta</button>
@@ -252,16 +199,84 @@
     </div>
   </div>
 
-  <!-- JS principal -->
-  <script type="module" src="js/main.js"></script>
-  <script type="module" src="js/generarPack.js"></script>
+  <!-- ===== MAIN embebido (puedes extraerlo a js/main.js si preferís) ===== -->
+  <script type="module">
+    import { cargarFechaHoy } from './fechaHoy.js';
+    import { buscarNombrePorDNI } from './buscarNombre.js';
+    import { buscarArmazonPorNumero } from './buscarArmazon.js';
+    import { configurarCalculoPrecios } from './calculos.js';
+    import { guardarTrabajo } from './guardar.js';
+    import { cargarCristales } from './sugerencias.js';
+    import { initPhotoPack } from './fotoPack.js';
 
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js").catch(console.error);
-      });
-    }
+    const $ = (id)=>document.getElementById(id);
+    const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
+    const lockForm=()=>{ const sp=$('spinner'); if(sp) sp.style.display='flex'; };
+    const unlockForm=()=>{ const sp=$('spinner'); if(sp) sp.style.display='none'; };
+
+    function parseFechaDDMMYY(str){ const [d,m,a]=str.split('/'); const y=a?.length===2?2000+parseInt(a,10):parseInt(a,10); return new Date(y,parseInt(m,10)-1,parseInt(d,10)); }
+    function fmtISO(d){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}`; }
+    function sumarDias(base, dias){ const d=new Date(base.getTime()); d.setDate(d.getDate()+(parseInt(dias,10)||0)); return d; }
+    function recalcularFechaRetiro(){ const enc=$('fecha'); const out=$('fecha_retira'); const radio=document.querySelector("input[name='entrega']:checked"); if(!enc||!out) return; const base=parseFechaDDMMYY(enc.value); const dias=radio?.value?parseInt(radio.value,10):7; out.value=fmtISO(sumarDias(base,dias)); autoFit(out,8,12); }
+
+    // Autoajuste de inputs a su contenido (ancho)
+    function autoFit(inp, minCh=8, maxCh=16){ if(!inp) return; const len = Math.min(Math.max((inp.value||inp.placeholder||'').length, minCh), maxCh); inp.style.width = `${len}ch`; }
+
+    function generarNumeroTrabajoDesdeTelefono(){ const tel=$('telefono'); const out=$('numero_trabajo'); if(!tel||!out) return; const dig=(tel.value||'').replace(/\D+/g,''); if(dig.length<4){ out.value=''; autoFit(out,8,12); return; } const ult4=dig.slice(-4); const n=new Date(); const an=String(n.getFullYear()).slice(-1); const mes=String(n.getMonth()+1).padStart(2,'0'); const dia=String(n.getDate()).padStart(2,'0'); const hr=String(n.getHours()).padStart(2,'0'); out.value=`${ult4}${dia}${mes}${hr}${an}`; autoFit(out,8,14); }
+
+    function agregarPlaceholder(s,t){ const o=document.createElement('option'); o.value=''; o.textContent=t; s.appendChild(o);} 
+    function opcion(s,v){ const o=document.createElement('option'); o.value=v; o.textContent=v; s.appendChild(o);} 
+    function rango(inicio, fin, paso){ const vals=[]; for(let v=inicio; v<=fin+1e-9; v+=paso){ vals.push((Math.round(v*100)/100).toFixed(2)); } return vals; }
+    function cargarOpcionesGraduacion(){ const ids=['od_esf','oi_esf','od_cil','oi_cil']; ids.forEach(id=>{ const s=$(id); if(s) s.innerHTML=''; }); const esf=rango(-20,20,0.25), cil=rango(-8,0,0.25); const map={od_esf:esf,oi_esf:esf,od_cil:cil,oi_cil:cil}; Object.entries(map).forEach(([id,vals])=>{ const s=$(id); if(!s) return; agregarPlaceholder(s, id.includes('esf')?'ESF':'CIL'); vals.forEach(v=>opcion(s,v)); }); }
+
+    function styleEje(inp,ok){ if(!inp) return; inp.style.borderColor= ok? '#CFD6E4':'#ef4444'; }
+    function checkEjeRequerido(sel,inp){ const cil=parseFloat(sel?.value||''); const eje=parseInt(inp?.value||'',10); const req=!isNaN(cil)&&cil!==0; let ok=true; if(req){ ok=(eje>=0 && eje<=180); } styleEje(inp,ok); return !req||ok; }
+    function configurarValidacionesEje(){ const pairs=[["od_cil","od_eje"],["oi_cil","oi_eje"]]; for(const [c,e] of pairs){ const sel=$(c), inp=$(e); if(!sel||!inp) continue; const h=()=>checkEjeRequerido(sel,inp); sel.addEventListener('change',h); inp.addEventListener('input',()=>{ inp.value=inp.value.replace(/\D+/g,'').slice(0,3); h(); }); }}
+    function validarEjesRequeridos(){ const ok1=checkEjeRequerido($("od_cil"),$("od_eje")); const ok2=checkEjeRequerido($("oi_cil"),$("oi_eje")); if(!(ok1&&ok2)&&window.Swal){ Swal.fire({icon:'warning',title:'Revisá los EJE',text:'Si hay CIL distinto de 0, el EJE debe estar entre 0 y 180.',timer:2500,showConfirmButton:false,toast:true,position:'top-end'});} return ok1&&ok2; }
+
+    function buildPrintArea(){ try{ (window.__buildPrintArea||(()=>{}))(); }catch{} setTimeout(()=>window.print(),0); }
+    function limpiarFormulario(){ const f=$("formulario"); if(!f) return; f.reset(); cargarFechaHoy(); if(Array.isArray(window.__FOTOS)) window.__FOTOS=[]; const gal=$("galeria-fotos"); if(gal) gal.innerHTML=''; recalcularFechaRetiro(); autoFit($("numero_trabajo"),8,12); autoFit($("fecha"),8,12); autoFit($("fecha_retira"),8,12); }
+
+    function initSegmentedVision(){ const segBtns=$$('.seg-btn'); const inputDesc=$('descripcion'); if(!segBtns.length||!inputDesc) return; const selectSeg=(btn)=>{ segBtns.forEach(b=>b.classList.remove('active')); btn.classList.add('active'); inputDesc.value=btn.dataset.value||btn.textContent.trim(); }; segBtns.forEach(b=>b.addEventListener('click',()=>selectSeg(b))); const init=(inputDesc.value||'').trim(); if(init){ const found=segBtns.find(b=>(b.dataset.value||b.textContent.trim())===init); if(found) selectSeg(found);} }
+
+    document.addEventListener('DOMContentLoaded', async()=>{
+      cargarFechaHoy();
+      cargarCristales();
+      cargarOpcionesGraduacion();
+      configurarValidacionesEje();
+      configurarCalculoPrecios();
+      initPhotoPack();
+      initSegmentedVision();
+
+      // Ajustes de ancho a contenido
+      autoFit($("fecha"),8,12); autoFit($("fecha_retira"),8,12); autoFit($("numero_trabajo"),8,14);
+
+      // Entrega → recalcular fecha
+      $$("input[name='entrega']").forEach(r=>r.addEventListener('change',recalcularFechaRetiro));
+      const f=$('fecha'); if(f) f.addEventListener('change',recalcularFechaRetiro); recalcularFechaRetiro();
+
+      // Teléfono → nº trabajo
+      const tel=$('telefono'); if(tel){ tel.addEventListener('blur',generarNumeroTrabajoDesdeTelefono); tel.addEventListener('change',generarNumeroTrabajoDesdeTelefono); tel.addEventListener('input',()=>{ /* opcional: live */ }); }
+
+      // DNI → nombre/teléfono con spinner
+      const dni=$('dni'), nombre=$('nombre'), telefono=$('telefono'), indi=$('dni-loading');
+      if(dni){ const h=()=>buscarNombrePorDNI(dni,nombre,telefono,indi); dni.addEventListener('change',h); dni.addEventListener('blur',h); }
+
+      // Nº Armazón
+      const nAr=$('numero_armazon'), detAr=$('armazon_detalle'), prAr=$('precio_armazon');
+      if(nAr){ nAr.addEventListener('input',()=>{ nAr.value=nAr.value.replace(/\D/g,'').slice(0,7); }); const h=()=>buscarArmazonPorNumero(nAr,detAr,prAr,$('spinner')); nAr.addEventListener('blur',h); nAr.addEventListener('change',h); }
+
+      // DNP en formato 12/34
+      const dnp=$('dnp'); if(dnp){ const fmt=v=>v.replace(/\D/g,'').slice(0,4).replace(/^(\d{0,2})(\d{0,2}).*$/,(_,a,b)=>b?`${a}/${b}`:a); dnp.addEventListener('input',()=> dnp.value=fmt(dnp.value)); }
+
+      // Acciones
+      const btnImp=$('btn-imprimir'); if(btnImp) btnImp.addEventListener('click',buildPrintArea);
+      const btnClr=$('btn-limpiar'); if(btnClr) btnClr.addEventListener('click',limpiarFormulario);
+
+      const form=$('formulario'); if(form){ form.addEventListener('submit',async(e)=>{ e.preventDefault(); if(!validarEjesRequeridos()) return; try{ lockForm(); await guardarTrabajo(); } finally { unlockForm(); } }); }
+    });
   </script>
+  <!-- módulo que ya usabas para el pack -->
+  <script type="module" src="js/generarPack.js"></script>
 </body>
 </html>

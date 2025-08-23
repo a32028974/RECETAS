@@ -1,269 +1,49 @@
-/* =========================
-   Optica Cristal — UI base
-   Prioridad: Tablet vertical (≈768–1024)
-   Luego: Desktop >= 1200
-   ========================= */
-
-/* Reset suave */
-* { box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
-  color: #111827;
-  background: #f4f6f8;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Contenido principal */
-.titulo {
-  max-width: 960px;
-  margin: 16px auto 8px auto;
-  padding: 0 12px;
-  font-size: 22px;
-  font-weight: 700;
-  text-align: left;
-}
-
-.card {
-  max-width: 960px;        /* tablet vertical */
-  margin: 0 auto;
-  background: #fff;
-  border-radius: 14px;
-  padding: 14px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 24px rgba(17,24,39,.06);
-}
-
-/* Layouts de grilla genéricos */
-.grid-2, .grid-3, .grid-4 {
-  display: grid;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.grid-2 { grid-template-columns: 1fr 1fr; }
-.grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-.grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
-
-/* Fila libre (labels o pequeñas cosas) */
-.row {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin: 6px 0 10px;
-}
-.row.end { justify-content: flex-end; }
-
-/* Campos */
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field > span {
-  font-size: 12px;
-  color: #6b7280; /* gris label */
-}
-
-/* Inputs / selects */
+/* Tamaño/altura de inputs más compacto, como el mockup */
 input[type="text"],
 input[type="number"],
 input[type="date"],
-select,
-textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d7dbe0;
+select {
+  height: 36px;
+  padding: 8px 10px;
+  font-size: 13px;
   border-radius: 10px;
-  background: #fff;
-  font-size: 14px;
-  outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
 }
 
-input[readonly] {
-  background: #f6f7f9;
-  color: #6b7280;
+/* Card más grande y con margen similar al mockup */
+.card {
+  max-width: 1180px;   /* desktop */
+  margin: 8px auto;
+  padding: 16px;
+}
+@media (max-width: 1024px) {
+  .card { max-width: 900px; }
 }
 
-input:focus, select:focus, textarea:focus {
-  border-color: #3b82f6; /* azul */
-  box-shadow: 0 0 0 3px rgba(59,130,246,.18);
+/* Producto: cristal ancho + precio angosto */
+.grid-2:nth-of-type(2) {           /* el bloque de cristal/precio */
+  grid-template-columns: 1fr 180px;
 }
 
-/* Radios de “entrega” */
-.row label { font-size: 14px; color: #111827; }
-.row .sub { color:#6b7280; font-size: 12px; margin-left: 4px; }
-.muted { color:#6b7280; font-size: 12px; }
-
-/* Wrapper para DNI / armazón con spinner */
-.dni-wrapper {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Spinner chico embebido */
-.inline-spinner {
-  width: 16px; height: 16px;
-  border-radius: 999px;
-  border: 2px solid #d7dbe0;
-  border-top-color: #3b82f6;
-  animation: spin .8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); }}
-
-/* =========================
-   Grilla armazón como mockup
-   ========================= */
+/* Armazón: número angosto + precio angosto */
 .grid-armazon {
-  display: grid;
-  grid-template-columns: 1fr minmax(100px, 200px);
-  gap: 12px;
-  align-items: end;
-  margin-bottom: 12px;
+  grid-template-columns: 220px 180px; /* número / precio */
 }
 
-/* Anchos “por caracteres” para inputs cortos */
-.w-7ch  { width: 7ch;  max-width: 7ch; }
-.w-10ch { width: 10ch; max-width: 12ch; }
+/* Modelo de armazón full-width ya está correcto */
 
-/* Receta */
-.receta { margin: 4px 0 10px; }
-.receta h3 {
-  margin: 12px 0 6px;
-  font-size: 14px;
-  letter-spacing: .2px;
-}
+/* Receta: columnas más parecidas al mockup */
 .receta .fila {
-  display: grid;
-  grid-template-columns: minmax(120px,1fr) minmax(120px,1fr) minmax(100px,120px);
-  gap: 10px;
-  margin-bottom: 10px;
+  grid-template-columns: 140px 140px 120px; /* ESF / CIL / EJE o DNP/ADD */
 }
 
-/* DNP y otros agregados */
-.receta .fila input[placeholder="DNP"],
-#dnp {
-  text-align: center;
-  letter-spacing: 1px;
-}
-
-/* Totales */
-.totales {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
-  margin: 12px 0;
-}
-
-/* Botones */
-button, input[type="submit"], .btn-secondary {
-  background: #111827;
-  color: #fff;
-  border: 0;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 1px 0 rgba(0,0,0,.04);
-  transition: transform .02s ease, filter .2s ease, background .2s ease;
-}
-button:hover, input[type="submit"]:hover, .btn-secondary:hover { filter: brightness(1.05); }
-button:active, input[type="submit"]:active { transform: translateY(1px); }
-
-.btn-secondary {
-  background: #374151;
-  color: #fff;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-}
-
-/* Barra de acciones abajo (Imprimir, Limpiar, Historial, Guardar) */
-.acciones {
-  max-width: 960px;
-  margin: 10px auto 20px;
-  padding: 0 12px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 10px;
-}
-.acciones .btns-left {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-/* Galería de fotos */
-.galeria {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 8px 0;
-}
+/* Galería: miniaturas cuadradas como en tu imagen */
 .galeria img, .galeria canvas, .galeria .ph {
-  width: 120px; height: 120px;
-  background: #000;
-  color:#fff;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  font-weight: 700;
+  width: 130px;
+  height: 130px;
 }
 
-/* Mensajes */
-#mensaje { max-width: 960px; margin: 8px auto; padding: 0 12px; }
-
-/* Spinner de pantalla */
-.spinner {
-  position: fixed;
-  inset: 0;
-  backdrop-filter: blur(1px);
-  background: rgba(255,255,255,.3);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-}
-.spinner .loader {
-  width: 36px; height: 36px;
-  border-radius: 9999px;
-  border: 3px solid #cfd6e0;
-  border-top-color: #111827;
-  animation: spin .9s linear infinite;
-}
-.spinner .spinner-text { margin-top: 8px; color:#111827; font-size: 13px; }
-
-/* Estado bloqueado del form (cuando buscamos o guardamos) */
-form[aria-busy="true"] {
-  pointer-events: none;
-  opacity: .6;
-  cursor: progress;
-}
-
-/* Área de impresión no visible en pantalla */
-.print-area { position: absolute; left: -9999px; top: -9999px; }
-
-/* =========================
-   Tablet XL / Desktop
-   ========================= */
-@media (min-width: 1200px) {
-  .titulo, .card, .acciones, #mensaje { max-width: 1140px; } /* PC */
-  .grid-3 { grid-template-columns: 1.2fr 1fr 1fr; }
-  .receta .fila {
-    grid-template-columns: 150px 150px 120px;
-  }
-  .grid-armazon {
-    grid-template-columns: minmax(220px, 1fr) 180px;
-  }
-}
-
-/* =========================
-   Impresión A4
-   ========================= */
-@media print {
-  body { background: #fff; }
-  .titulo, .card, .acciones, #mensaje { display: none !important; }
-  .print-area { position: static; left: 0; top: 0; display: block; }
+/* Barra de acciones inferior como en el mockup */
+.acciones {
+  max-width: 1180px;
+  padding-bottom: 8px;
 }

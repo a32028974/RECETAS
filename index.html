@@ -64,7 +64,7 @@
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1>Óptica Cristal v6<span class="muted"></span></h1>
+            <h1>Óptica Cristal v7<span class="muted"></span></h1>
             <div class="small muted"></div>
           </div>
         </div>
@@ -134,34 +134,35 @@
 </div>  
         
         <div class="row cols-4">
-          <div>
-            <label for="od_esf">OD ESF</label>
-            <select id="od_esf" name="od_esf"></select>
-          </div>
-          <div>
-            <label for="od_cil">OD CIL</label>
-            <select id="od_cil" name="od_cil"></select>
-          </div>
-          <div>
-            <label for="od_eje">OD EJE (0–180)</label>
-            <input id="od_eje" name="od_eje" inputmode="numeric" />
-          </div>
-        </div>
+  <div>
+    <label for="od_esf">OD ESF</label>
+    <input type="number" id="od_esf" name="od_esf" step="0.25" min="-30" max="20" placeholder="ESF" />
+  </div>
+  <div>
+    <label for="od_cil">OD CIL</label>
+    <input type="number" id="od_cil" name="od_cil" step="0.25" min="-7" max="7" placeholder="CIL" />
+  </div>
+  <div>
+    <label for="od_eje">OD EJE (0–180)</label>
+    <input type="number" id="od_eje" name="od_eje" min="0" max="180" placeholder="EJE" />
+  </div>
+</div>
 
-        <div class="row cols-3">
-          <div>
-            <label for="oi_esf">OI ESF</label>
-            <select id="oi_esf" name="oi_esf"></select>
-          </div>
-          <div>
-            <label for="oi_cil">OI CIL</label>
-            <select id="oi_cil" name="oi_cil"></select>
-          </div>
-          <div>
-            <label for="oi_eje">OI EJE (0–180)</label>
-            <input id="oi_eje" name="oi_eje" inputmode="numeric" />
-          </div>
-        </div>
+<div class="row cols-3">
+  <div>
+    <label for="oi_esf">OI ESF</label>
+    <input type="number" id="oi_esf" name="oi_esf" step="0.25" min="-30" max="20" placeholder="ESF" />
+  </div>
+  <div>
+    <label for="oi_cil">OI CIL</label>
+    <input type="number" id="oi_cil" name="oi_cil" step="0.25" min="-7" max="7" placeholder="CIL" />
+  </div>
+  <div>
+    <label for="oi_eje">OI EJE (0–180)</label>
+    <input type="number" id="oi_eje" name="oi_eje" min="0" max="180" placeholder="EJE" />
+  </div>
+</div>
+
 <div class="row cols-3">
           <div>
             <label for="dr">Dr.</label>

@@ -1,5 +1,4 @@
 // /RECETAS/js/main.js — versión final
-// al inicio, sumá este import:
 import { obtenerNumeroTrabajoDesdeTelefono } from './numeroTrabajo.js';
 import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
@@ -40,50 +39,114 @@ const generarNumeroTrabajoDesdeTelefono = () => {
   out.value = obtenerNumeroTrabajoDesdeTelefono(tel.value);
 };
 
+/* ===== Graduaciones (inputs con +/- y punto) ===== */
+// Utils
+function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
+function snapToStep(n, step){ return Math.round(n / step) * step; }
 
-/* ===== Graduaciones ===== */
-function agregarPlaceholder(select, texto){ const opt=document.createElement('option'); opt.value=''; opt.textContent=texto; select.appendChild(opt); }
-function opcion(select, valor){ const o=document.createElement('option'); o.value=valor; o.textContent=valor; select.appendChild(o); }
-function rangoDecimales(inicio, fin, paso){ const vals=[]; for(let v=inicio; v<=fin+1e-9; v+=paso){ vals.push((Math.round(v*100)/100).toFixed(2)); } return vals; }
-function cargarOpcionesGraduacion(){
-  const ids = ['od_esf','oi_esf','od_cil','oi_cil']; ids.forEach(id => { const s=$(id); if(s) s.innerHTML=''; });
-  const esfVals = rangoDecimales(-20, 20, 0.25), cilVals = rangoDecimales(-8, 0, 0.25);
-  const map = { od_esf:esfVals, oi_esf:esfVals, od_cil:cilVals, oi_cil:cilVals };
-  Object.entries(map).forEach(([id,vals])=>{ const s=$(id); if(!s) return; agregarPlaceholder(s, id.includes('esf')?'ESF': 'CIL'); vals.forEach(v=> opcion(s, v)); });
+// Sanitiza en tiempo real: sin coma, solo + - dígitos y un punto
+function sanitizeGradual(el){
+  let v = el.value;
+  v = v.replace(/,/g, '');            // bloquea coma
+  v = v.replace(/[^\d+.\-]/g, '');    // deja + - dígitos .
+  v = v.replace(/(?!^)[+-]/g, '');    // un solo signo y solo al inicio
+  const parts = v.split('.');
+  if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+  el.value = v;
 }
 
-/* ===== Validación EJE si hay CIL ≠ 0 ===== */
+// Valida al salir: rango + paso y fija 2 decimales
+function validateGradual(el){
+  const min  = parseFloat(el.dataset.min);
+  const max  = parseFloat(el.dataset.max);
+  const step = parseFloat(el.dataset.step);
+  let v = el.value.trim();
+  if (!v) return; // permitir vacío
+
+  v = v.replace(/,/g, '.');           // por si pegaron coma
+  const num = parseFloat(v);
+  if (isNaN(num)) { el.value = ''; return; }
+
+  let val = clamp(snapToStep(num, step), min, max);
+  el.value = val.toFixed(2);
+}
+
+// EJE: 0..180 enteros
+function sanitizeEje(el){ el.value = el.value.replace(/\D/g, '').slice(0,3); }
+function validateEje(el){
+  if (!el.value) return;
+  let n = parseInt(el.value, 10);
+  if (isNaN(n)) { el.value=''; return; }
+  n = clamp(n, 0, 180);
+  el.value = String(n);
+}
+
+// EJE requerido si CIL ≠ 0
 function styleEje(inp, ok){ if(!inp) return; inp.style.borderColor = ok? '#e5e7eb' : '#ef4444'; }
-function checkEjeRequerido(selCil, inpEje){
-  const cil = parseFloat(selCil?.value || ''), eje = parseInt(inpEje?.value || '',10);
-  const requerido = !isNaN(cil) && cil!==0; let ok = true; if(requerido){ ok = (eje>=0 && eje<=180); }
-  styleEje(inpEje, ok); return !requerido || ok;
-}
-function configurarValidacionesEje(){
-  [['od_cil','od_eje'], ['oi_cil','oi_eje']].forEach(([idC,idE])=>{
-    const sel=$(idC), inp=$(idE); if(!sel || !inp) return;
-    const h = ()=> checkEjeRequerido(sel, inp);
-    sel.addEventListener('change', h);
-    inp.addEventListener('input', ()=>{ inp.value = inp.value.replace(/\D+/g,'').slice(0,3); h(); });
-  });
+function checkEjeRequerido(cilEl, ejeEl){
+  const cil = parseFloat((cilEl?.value || '').replace(',', '.'));
+  const eje = parseInt(ejeEl?.value || '', 10);
+  const requerido = !isNaN(cil) && cil !== 0;
+  let ok = true;
+  if (requerido) ok = (eje>=0 && eje<=180);
+  styleEje(ejeEl, ok);
+  return !requerido || ok;
 }
 function validarEjesRequeridos(){
-  const ok1 = checkEjeRequerido($('od_cil'), $('od_eje')), ok2 = checkEjeRequerido($('oi_cil'), $('oi_eje'));
+  const ok1 = checkEjeRequerido($('od_cil'), $('od_eje'));
+  const ok2 = checkEjeRequerido($('oi_cil'), $('oi_eje'));
   if(!(ok1 && ok2) && window.Swal){
-    Swal.fire({icon:'warning', title:'Revisá los EJE', text:'Si hay CIL distinto de 0, el EJE debe estar entre 0 y 180.', timer:2500, showConfirmButton:false, toast:true, position:'top-end'});
+    Swal.fire({
+      icon:'warning',
+      title:'Revisá los EJE',
+      text:'Si hay CIL distinto de 0, el EJE debe estar entre 0 y 180.',
+      timer:2500, showConfirmButton:false, toast:true, position:'top-end'
+    });
   }
   return ok1 && ok2;
 }
 
+// Wireup de eventos para ESF/CIL/EJE
+function setupGraduaciones(){
+  // ESF/CIL (class="grad")
+  document.querySelectorAll('input.grad').forEach(el=>{
+    el.addEventListener('input', ()=> sanitizeGradual(el));
+    el.addEventListener('blur',  ()=> validateGradual(el));
+    el.addEventListener('keydown', (e)=>{ if (e.key === ',') e.preventDefault(); }); // bloquear coma
+  });
+
+  // EJE
+  ['od_eje','oi_eje'].forEach(id=>{
+    const el = $(id);
+    if (!el) return;
+    el.addEventListener('input', ()=>{ sanitizeEje(el); checkEjeRequerido(id==='od_eje' ? $('od_cil') : $('oi_cil'), el); });
+    el.addEventListener('blur',  ()=> validateEje(el));
+  });
+
+  // Cuando cambie CIL, revalidar EJE requerido
+  ['od_cil','oi_cil'].forEach(id=>{
+    const cil = $(id);
+    const eje = $(id==='od_cil' ? 'od_eje' : 'oi_eje');
+    if (!cil || !eje) return;
+    const h = ()=> checkEjeRequerido(cil, eje);
+    cil.addEventListener('input', h);
+    cil.addEventListener('blur',  h);
+  });
+}
+
 /* ===== Impresión / Limpieza ===== */
 function buildPrintArea(){ try{ (window.__buildPrintArea||(()=>{}))(); }catch{} setTimeout(()=>window.print(),0); }
-function limpiarFormulario(){ const form=$('formulario'); if(!form) return; form.reset(); cargarFechaHoy(); const gal=$('galeria-fotos'); if(gal) gal.innerHTML=''; recalcularFechaRetiro(); }
+function limpiarFormulario(){
+  const form=$('formulario'); if(!form) return;
+  form.reset(); cargarFechaHoy();
+  const gal=$('galeria-fotos'); if(gal) gal.innerHTML='';
+  recalcularFechaRetiro();
+}
 
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
   cargarFechaHoy();
-  cargarOpcionesGraduacion();
-  configurarValidacionesEje();
+  setupGraduaciones();                // <<< NUEVO: activa validaciones de graduación
 
   $$("input[name='entrega']").forEach(r => r.addEventListener('change', recalcularFechaRetiro));
   const fechaEnc = $('fecha'); if(fechaEnc) fechaEnc.addEventListener('change', recalcularFechaRetiro);
@@ -112,7 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
     nAr.addEventListener('input', ()=>{ nAr.value = nAr.value.replace(/\D/g,'').slice(0,7); });
   }
 
-  const dnp=$('dnp'); if(dnp){ const fmt=(v)=> v.replace(/\D/g,'').slice(0,4).replace(/^(\d{0,2})(\d{0,2}).*$/,(_,a,b)=> b?`${a}/${b}`:a); dnp.addEventListener('input', ()=> dnp.value = fmt(dnp.value)); }
+  const dnp=$('dnp');
+  if(dnp){
+    const fmt=(v)=> v.replace(/\D/g,'').slice(0,4).replace(/^(\d{0,2})(\d{0,2}).*$/,(_,a,b)=> b?`${a}/${b}`:a);
+    dnp.addEventListener('input', ()=> dnp.value = fmt(dnp.value));
+  }
 
   const btnImp=$('btn-imprimir'); if(btnImp) btnImp.addEventListener('click', buildPrintArea);
   const btnClr=$('btn-limpiar'); if(btnClr) btnClr.addEventListener('click', limpiarFormulario);

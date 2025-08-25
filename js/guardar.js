@@ -1,5 +1,5 @@
 // js/guardar.js
-import { API_URL } from "./api.js";
+import { API_URL, withParams, apiGet } from "./api.js";
 
 // Apps Script que genera el PDF + Telegram (dejalo como lo tenés)
 const PACK_URL = "https://script.google.com/macros/s/AKfycbyAc51qga-xnN3319jcVmAWwz7NTlNH-Lht3IwRIt8PT0MAy_ZKpcGJiohQZIFPfIONsA/exec";
@@ -16,7 +16,6 @@ function entregaTxt() {
 
 async function prepararImpresion() {
   try { if (typeof window.__buildPrintArea === "function") window.__buildPrintArea(); } catch {}
-  // 2 RAF para asegurar reflow y que no salga en blanco
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
@@ -61,12 +60,12 @@ export async function guardarTrabajo() {
     if (spinner) spinner.style.display = "block";
     setMsg("");
 
-    // Validaciones básicas (coinciden con required del HTML)
+    // Validaciones básicas
     if (!V("numero_trabajo")) throw new Error("Ingresá el número de trabajo");
     if (!V("dni"))            throw new Error("Ingresá el DNI");
     if (!V("nombre"))         throw new Error("Ingresá el nombre");
 
-    // 1) Guardar en la planilla
+    // 1) Guardar en la planilla (POST x-www-form-urlencoded)
     const formEl = $("formulario");
     const body = new URLSearchParams(new FormData(formEl));
     const res = await fetch(API_URL, { method: "POST", body });
@@ -89,25 +88,29 @@ export async function guardarTrabajo() {
         headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
         body: new URLSearchParams({ genPack: "1", payload: JSON.stringify(payload) })
       });
+
       const raw = await packRes.text();
+      if (!packRes.ok) throw new Error(`Error PACK (${packRes.status})`);
+
       let j; try { j = JSON.parse(raw); } catch { j = null; }
       if (!j?.ok) throw new Error("No se pudo crear/enviar el PDF");
-      packUrl = j.url || "";
+      packUrl = j.url || j.pdf || "";
     }
 
-    // 2.b) Guardar packUrl en el hidden (por si lo usás en otro lado)
+    // 2.b) Guardar packUrl en hidden (opcional)
     const hidden = $("pack_url");
     if (hidden) hidden.value = packUrl;
 
-    // 2.c) Actualizar columna PDF por número de trabajo (setPdf)
+    // 2.c) Actualizar columna PDF por número de trabajo (setPdf en API_URL)
     try {
       const n = V("numero_trabajo");
       if (n && packUrl) {
-        await fetch(`${API_URL}?setPdf=1&numero=${encodeURIComponent(n)}&url=${encodeURIComponent(packUrl)}`);
+        const setUrl = withParams(API_URL, { setPdf: 1, numero: n, url: packUrl });
+        await apiGet(setUrl);
       }
     } catch {}
 
-    // 3) Ofrecer imprimir (con timing seguro)
+    // 3) Imprimir
     if (window.Swal) {
       const r = await Swal.fire({
         title: "Guardado y PDF enviado",

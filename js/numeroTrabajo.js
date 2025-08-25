@@ -11,7 +11,7 @@ export function obtenerNumeroTrabajoDesdeTelefono(telefonoStr){
   const mes  = String(now.getMonth()+1).padStart(2,'0');
   const dia  = String(now.getDate()).padStart(2,'0');
   const hora = String(now.getHours()).padStart(2,'0');
-  return `${ult4}${dia}${mes}${hora}${anio}`;
+  return `${anio}${dia}${mes}${hora}${ult4}`;
 }
 
 // Para compatibilidad con tu llamado anterior (si existiera)

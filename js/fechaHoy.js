@@ -1,14 +1,13 @@
-// fechaHoy.js
-// Pone la fecha de hoy en #fecha con formato dd/mm/aa y la devuelve
+// /RECETAS/js/fechaHoy.js
 export function cargarFechaHoy() {
-  const hoy = new Date();
-  const dia  = String(hoy.getDate()).padStart(2, '0');
-  const mes  = String(hoy.getMonth() + 1).padStart(2, '0');
-  const anio = String(hoy.getFullYear()).slice(-2);
-  const str  = `${dia}/${mes}/${anio}`;
+  const input = document.getElementById('fecha');
+  if (!input) return;
 
-  const input = document.getElementById("fecha"); // existe en tu index:contentReference[oaicite:3]{index=3}
-  if (input) input.value = str;
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yy = String(now.getFullYear()).slice(-2);
 
-  return { date: hoy, str };
+  input.value = `${dd}/${mm}/${yy}`;
 }
+export default cargarFechaHoy;

@@ -64,14 +64,14 @@
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1>Óptica Cristal v3<span class="muted">""</span></h1>
-            <div class="small muted">""</div>
+            <h1>Óptica Cristal v3<span class="muted"></span></h1>
+            <div class="small muted"></div>
           </div>
         </div>
         <div class="row" style="grid-template-columns:minmax(180px, 260px);">
           <div>
             <label for="numero_trabajo">Número de trabajo</label>
-            <input id="numero_trabajo" name="numero_trabajo" inputmode="numeric" autocomplete="off" placeholder="Se genera desde el teléfono" />
+            <input id="numero_trabajo" name="numero_trabajo" inputmode="numeric" autocomplete="off" placeholder="" />
           </div>
         </div>
       </div>
@@ -88,9 +88,9 @@
           <div>
             <label class="small">Modalidad de entrega</label>
             <div class="seg" role="radiogroup" aria-label="Entrega">
-              <label><input type="radio" name="entrega" value="7" checked /> Stock (7 días aprox)</label>
-              <label><input type="radio" name="entrega" value="3" /> Urgente (3 días)</label>
-              <label><input type="radio" name="entrega" value="15" /> Laboratorio (15 días)</label>
+              <label><input type="radio" name="entrega" value="7" checked /> Stock (7 días)</label>
+              <label><input type="radio" name="entrega" value="3" /> Urg (3 días)</label>
+              <label><input type="radio" name="entrega" value="15" /> Lab (15 días)</label>
             </div>
           </div>
           <div>
@@ -101,30 +101,30 @@
 
         <div class="row cols-3">
           <div>
-            <label for="telefono">Teléfono (genera N°)</label>
-            <input id="telefono" name="telefono" placeholder="11 2345 6789" autocomplete="tel" />
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" name="telefono" placeholder="" autocomplete="tel" />
           </div>
           <div>
             <label for="dni">DNI</label>
-            <input id="dni" name="dni" inputmode="numeric" placeholder="Sólo números" />
+            <input id="dni" name="dni" inputmode="numeric" placeholder="" />
             <div id="dni-loading" class="inline-loader" hidden>
               <span class="pill">Buscando…</span>
             </div>
           </div>
           <div>
             <label for="nombre">Apellido y nombre</label>
-            <input id="nombre" name="nombre" placeholder="Apellido y nombre" />
+            <input id="nombre" name="nombre" placeholder="Apellido primero" />
           </div>
         </div>
 
         <div class="row cols-3">
           <div>
-            <label for="dr">Dr. (oculista)</label>
-            <input id="dr" name="dr" placeholder="Opcional" />
+            <label for="dr">Dr.</label>
+            <input id="dr" name="dr" placeholder="Jimena/Oftalm" />
           </div>
           <div>
             <label for="dnp">DNP (OD/OI)</label>
-            <input id="dnp" name="dnp" placeholder="12/34" />
+            <input id="dnp" name="dnp" placeholder="30/30" />
           </div>
           <div>
             <label for="add">ADD</label>
@@ -188,13 +188,9 @@
           </div>
           <div>
             <label for="forma_pago">Forma de pago</label>
-            <input id="forma_pago" name="forma_pago" placeholder="Efectivo / Tarjeta / Transferencia" />
+            <input id="forma_pago" name="forma_pago" placeholder="" />
           </div>
-          <div>
-            <label for="descripcion">Tipo / Entrega</label>
-            <input id="descripcion" name="descripcion" placeholder="NORMAL / URGENTE / LABORATORIO" />
           </div>
-        </div>
       </section>
 
       <!-- Columna derecha: armazón + totales + fotos -->
@@ -203,7 +199,7 @@
           <div class="row cols-3">
             <div>
               <label for="numero_armazon">Nº armazón</label>
-              <input id="numero_armazon" name="numero_armazon" inputmode="numeric" placeholder="Sólo números" />
+              <input id="numero_armazon" name="numero_armazon" inputmode="numeric" placeholder="" />
               <div id="armazon-loading" class="inline-loader" hidden>
                 <span class="pill">Buscando…</span>
               </div>

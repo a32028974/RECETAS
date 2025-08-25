@@ -25,7 +25,7 @@
     .row.cols-4{ grid-template-columns: repeat(4, 1fr); }
     @media (min-width: 800px){
       .grid.two{ grid-template-columns: 1.2fr .8fr; align-items:start; }
-      .grid.three{ grid-template-columns: 0.81fr 0.81fr 0.81fr; }
+      .grid.three{ grid-template-columns: 1fr 1fr 1fr; }
     }
     label{ font-size:13px; color:#374151; }
     input, select, textarea{ width:100%; padding:10px 12px; border:1px solid #e5e7eb; border-radius:12px; font-size:14px; background:#fff; }
@@ -64,7 +64,7 @@
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1>Óptica Cristal v4<span class="muted"></span></h1>
+            <h1>Óptica Cristal v5<span class="muted"></span></h1>
             <div class="small muted"></div>
           </div>
         </div>
@@ -100,22 +100,27 @@
         </div>
 
         <div class="row cols-3">
-          <div>
-            <label for="dni">DNI</label>
-            <input id="dni" name="dni" inputmode="numeric" placeholder="" />
-            <div id="dni-loading" class="inline-loader" hidden>
-              <span class="pill">Buscando…</span>
-            </div>
-          <div>
-            <label for="nombre">Apellido y nombre</label>
-            <input id="nombre" name="nombre" placeholder="Apellido primero" />
-            </div>
-          </div>
-          <div>
-            <label for="telefono">Teléfono</label>
-            <input id="telefono" name="telefono" placeholder="" autocomplete="tel" />
-          </div>
-        </div>
+  <!-- Col 1: DNI -->
+  <div>
+    <label for="dni">DNI</label>
+    <input id="dni" name="dni" inputmode="numeric" placeholder="">
+    <div id="dni-loading" class="inline-loader" hidden>
+      <span class="pill">Buscando…</span>
+    </div>
+  </div>
+
+  <!-- Col 2: Apellido y nombre -->
+  <div>
+    <label for="nombre">Apellido y nombre</label>
+    <input id="nombre" name="nombre" placeholder="Apellido primero">
+  </div>
+
+  <!-- Col 3: Teléfono -->
+  <div>
+    <label for="telefono">Teléfono</label>
+    <input id="telefono" name="telefono" autocomplete="tel" placeholder="">
+  </div>
+</div>
 
         <div class="row cols-3">
           <div>

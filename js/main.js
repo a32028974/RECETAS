@@ -39,7 +39,7 @@ function generarNumeroTrabajoDesdeTelefono(){
   const ult4 = dig.slice(-4), now = new Date();
   const anio = String(now.getFullYear()).slice(-1), mes=String(now.getMonth()+1).padStart(2,'0'),
         dia=String(now.getDate()).padStart(2,'0'), hora=String(now.getHours()).padStart(2,'0');
-  out.value = `${ult4}${dia}${mes}${hora}${anio}`;
+  out.value = `${anio}${dia}${mes}${hora}${ult4}`;
 }
 
 /* ===== Graduaciones ===== */

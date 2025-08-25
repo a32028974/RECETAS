@@ -1,5 +1,4 @@
-// /js/main.js — versión funcional (página en /RECETAS/, scripts en /js)
-
+// /RECETAS/js/main.js — versión final
 import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';

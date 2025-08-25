@@ -1,93 +1,145 @@
 // buscarArmazon.js
 import { API_URL } from './api.js';
 
+/**
+ * Inicializa la búsqueda de armazones.
+ * Se dispara automáticamente al salir del campo o presionar Enter.
+ */
 export function initBuscarArmazon() {
-  const armazonInput = document.getElementById('numero_armazon');
-  const detalleInput = document.getElementById('armazon_detalle');
-  const precioInput = document.getElementById('precio_armazon');
-  const indicadorInline = document.getElementById('armazon-loading');
+  const numeroArmazonInput = document.getElementById('numero_armazon');
+  const armazonDetalleInput = document.getElementById('armazon_detalle');
+  const precioArmazonInput = document.getElementById('precio_armazon');
+  const spinner = document.getElementById("armazon-loading");
 
-  if (!armazonInput || !detalleInput || !precioInput) {
-    console.warn("[buscarArmazon] No se encontraron los inputs requeridos.");
+  if (!numeroArmazonInput) {
+    console.warn("[buscarArmazon] No se encontró #numero_armazon");
     return;
   }
 
-  // Función principal
-  async function buscarArmazon() {
-    const numero = (armazonInput.value || "").trim();
+  async function buscarArmazonPorNumero() {
+    const numero = (numeroArmazonInput.value || "").trim();
+
+    // Muestro spinner
+    if (spinner) spinner.hidden = false;
+
+    // Si está vacío, limpio todo
     if (!numero) {
-      detalleInput.value = "";
-      precioInput.value = "";
+      if (armazonDetalleInput) armazonDetalleInput.value = "";
+      if (precioArmazonInput) precioArmazonInput.value = "";
+      marcarEstado(numeroArmazonInput, null);
+      if (spinner) spinner.hidden = true;
       return;
     }
 
-    const showLoading = (on) => {
-      if (indicadorInline) indicadorInline.hidden = !on;
-      detalleInput.placeholder = on ? "Buscando…" : "Marca / Modelo / Color";
-    };
-
-    showLoading(true);
-
     try {
-      const res = await fetch(`${API_URL}?buscarArmazon=${encodeURIComponent(numero)}`);
+      const url = `${API_URL}?buscarArmazon=${encodeURIComponent(numero)}`;
+      const res = await fetch(url);
       const data = await res.json();
-      console.log("[ARMAZON] Respuesta:", data);
 
-      if (data.error) {
-        detalleInput.value = "";
-        precioInput.value = "";
-        Swal.fire({
-          icon: "warning",
-          title: "No encontrado",
-          text: `El armazón ${numero} no existe en el stock.`,
-          confirmButtonText: "Aceptar"
-        });
-        return;
-      }
+      if (data && !data.error) {
+        // Completar detalle y precio
+        if (armazonDetalleInput) armazonDetalleInput.value = (data.modelo || "").toUpperCase();
+        if (precioArmazonInput)  precioArmazonInput.value = (data.precio || "");
 
-      // Si encontramos datos del armazón
-      const detalle = data.modelo || "";
-      const precio = data.precio || "";
-      const estado = data.estado || "DESCONOCIDO";
-      const vendedor = data.vendedor || "";
-      const fecha = data.fecha || "";
+        // Estado del armazón (DISPONIBLE / VENDIDO)
+        const estado   = (data.estado || "DESCONOCIDO").toUpperCase();
+        const vendedor = (data.vendedor || "").toUpperCase();
+        const fecha    = (data.fecha || "");
 
-      detalleInput.value = detalle;
-      precioInput.value = precio;
+        mostrarAvisoEstado(estado, vendedor, fecha);
+        marcarEstado(numeroArmazonInput, estado);
+      } else {
+        // No encontrado
+        if (armazonDetalleInput) armazonDetalleInput.value = "";
+        if (precioArmazonInput)  precioArmazonInput.value = "";
+        marcarEstado(numeroArmazonInput, "NO_ENCONTRADO");
 
-      // Si está vendido → alerta al usuario
-      if (estado === "VENDIDO") {
-        Swal.fire({
-          icon: "error",
-          title: "Atención",
-          html: `
-            <b>El armazón ${numero} ya está VENDIDO.</b><br>
-            Vendedor: ${vendedor || "Desconocido"}<br>
-            Fecha: ${fecha || "Sin datos"}
-          `,
-          confirmButtonText: "Aceptar"
-        });
+        if (window.Swal) {
+          Swal.fire({
+            icon: "warning",
+            title: "Armazón no encontrado",
+            toast: true,
+            position: "top-end",
+            timer: 2500,
+            showConfirmButton: false
+          });
+        }
       }
     } catch (err) {
       console.error("Error buscando armazón:", err);
-      detalleInput.value = "";
-      precioInput.value = "";
+      if (window.Swal) {
+        Swal.fire({
+          icon: "error",
+          title: "Error de conexión",
+          toast: true,
+          position: "top-end",
+          timer: 2500,
+          showConfirmButton: false
+        });
+      }
     } finally {
-      showLoading(false);
+      if (spinner) spinner.hidden = true;
     }
   }
 
-  // Dispara búsqueda al salir del campo
-  armazonInput.addEventListener('blur', buscarArmazon);
+  // Dispara búsqueda al salir del input
+  numeroArmazonInput.addEventListener('blur', buscarArmazonPorNumero);
 
   // Dispara búsqueda al presionar Enter
-  armazonInput.addEventListener('keydown', (e) => {
+  numeroArmazonInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      buscarArmazon();
+      buscarArmazonPorNumero();
     }
   });
 }
 
-// Inicializa automáticamente al cargar la página
-document.addEventListener('DOMContentLoaded', initBuscarArmazon);
+/* ===== UI helpers ===== */
+
+function mostrarAvisoEstado(estado, vendedor, fecha) {
+  if (!window.Swal) return;
+
+  if (estado === "VENDIDO") {
+    const texto = [
+      "Este armazón figura VENDIDO.",
+      vendedor ? `Vendedor: ${vendedor}.` : "",
+      fecha ? `Fecha: ${fecha}.` : ""
+    ].filter(Boolean).join(" ");
+
+    Swal.fire({
+      icon: "warning",
+      title: "Armazón VENDIDO",
+      text: texto,
+      toast: true,
+      position: "top-end",
+      timer: 3800,
+      showConfirmButton: false
+    });
+  } else if (estado === "DISPONIBLE") {
+    Swal.fire({
+      icon: "success",
+      title: "Armazón disponible",
+      toast: true,
+      position: "top-end",
+      timer: 1800,
+      showConfirmButton: false
+    });
+  }
+}
+
+function marcarEstado(input, estado) {
+  if (!input) return;
+  input.style.outline = "";
+  input.style.borderColor = "";
+
+  if (estado === "VENDIDO") {
+    input.style.borderColor = "red";
+    input.style.outline     = "2px solid rgba(255,0,0,.35)";
+  } else if (estado === "DISPONIBLE") {
+    input.style.borderColor = "green";
+    input.style.outline     = "2px solid rgba(0,128,0,.25)";
+  } else if (estado === "NO_ENCONTRADO") {
+    input.style.borderColor = "#cc8800";
+    input.style.outline     = "2px solid rgba(230,160,0,.25)";
+  }
+}

@@ -1,4 +1,6 @@
 // /RECETAS/js/main.js — versión final
+// al inicio, sumá este import:
+import { obtenerNumeroTrabajoDesdeTelefono } from './numeroTrabajo.js';
 import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
@@ -32,15 +34,12 @@ function recalcularFechaRetiro(){
 }
 
 /* ===== Nº de trabajo desde teléfono ===== */
-function generarNumeroTrabajoDesdeTelefono(){
-  const tel = $('telefono'), out = $('numero_trabajo'); if(!tel || !out) return;
-  const dig = (tel.value || '').replace(/\D+/g,'');
-  if(dig.length < 4){ out.value=''; return; }
-  const ult4 = dig.slice(-4), now = new Date();
-  const anio = String(now.getFullYear()).slice(-1), mes=String(now.getMonth()+1).padStart(2,'0'),
-        dia=String(now.getDate()).padStart(2,'0'), hora=String(now.getHours()).padStart(2,'0');
-  out.value = `${anio}${dia}${mes}${hora}${ult4}`;
-}
+const generarNumeroTrabajoDesdeTelefono = () => {
+  const tel = $('telefono'), out = $('numero_trabajo');
+  if (!tel || !out) return;
+  out.value = obtenerNumeroTrabajoDesdeTelefono(tel.value);
+};
+
 
 /* ===== Graduaciones ===== */
 function agregarPlaceholder(select, texto){ const opt=document.createElement('option'); opt.value=''; opt.textContent=texto; select.appendChild(opt); }

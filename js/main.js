@@ -1,10 +1,10 @@
 // main.js — versión simple y funcional
 // Arranque mínimo para que DNI y Nº de armazón funcionen sí o sí.
 
-import { cargarFechaHoy } from './fechaHoy.js';
-import { buscarNombrePorDNI } from './buscarNombre.js';
-import { buscarArmazonPorNumero } from './buscarArmazon.js';
-import { guardarTrabajo } from './guardar.js';
+import { cargarFechaHoy } from '/fechaHoy.js';
+import { buscarNombrePorDNI } from '/buscarNombre.js';
+import { buscarArmazonPorNumero } from '/buscarArmazon.js';
+import { guardarTrabajo } from '/guardar.js';
 
 const $  = (id) => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));

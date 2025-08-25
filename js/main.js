@@ -1,8 +1,9 @@
-// main.js — versión funcional con imports absolutos (raíz del sitio)
-import { cargarFechaHoy } from '/fechaHoy.js';
-import { buscarNombrePorDNI } from '/buscarNombre.js';
-import { buscarArmazonPorNumero } from '/buscarArmazon.js';
-import { guardarTrabajo } from '/guardar.js';
+// /js/main.js — versión funcional (página en /RECETAS/, scripts en /js)
+
+import { cargarFechaHoy } from './fechaHoy.js';
+import { buscarNombrePorDNI } from './buscarNombre.js';
+import { buscarArmazonPorNumero } from './buscarArmazon.js';
+import { guardarTrabajo } from './guardar.js';
 
 const $  = (id) => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));

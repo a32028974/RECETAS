@@ -122,21 +122,17 @@
   </div>
 </div>
 
-        <div class="row cols-3">
-          <div>
-            <label for="dr">Dr.</label>
-            <input id="dr" name="dr" placeholder="Jimena/Oftalm" />
-          </div>
-          <div>
-            <label for="dnp">DNP (OD/OI)</label>
-            <input id="dnp" name="dnp" placeholder="30/30" />
-          </div>
-          <div>
-            <label for="add">ADD</label>
-            <input id="add" name="add" placeholder="" />
-          </div>
-        </div>
-
+        <div class="row cols-2">
+  <div>
+    <label for="cristal">Tipo de cristal</label>
+    <input id="cristal" name="cristal" placeholder="Monofocal / Bifocal / etc." />
+  </div>
+  <div>
+    <label for="precio_cristal">Precio cristal</label>
+    <input id="precio_cristal" name="precio_cristal" placeholder="$" inputmode="numeric" />
+  </div>
+</div>  
+        
         <div class="row cols-4">
           <div>
             <label for="od_esf">OD ESF</label>
@@ -149,10 +145,6 @@
           <div>
             <label for="od_eje">OD EJE (0–180)</label>
             <input id="od_eje" name="od_eje" inputmode="numeric" />
-          </div>
-          <div>
-            <label for="cristal">Tipo de cristal</label>
-            <input id="cristal" name="cristal" placeholder="Monofocal / Bifocal / Progresivo" />
           </div>
         </div>
 
@@ -170,12 +162,22 @@
             <input id="oi_eje" name="oi_eje" inputmode="numeric" />
           </div>
         </div>
+<div class="row cols-3">
+          <div>
+            <label for="dr">Dr.</label>
+            <input id="dr" name="dr" placeholder="Jimena/Oftalm" />
+          </div>
+          <div>
+            <label for="dnp">DNP (OD/OI)</label>
+            <input id="dnp" name="dnp" placeholder="30/30" />
+          </div>
+          <div>
+            <label for="add">ADD</label>
+            <input id="add" name="add" placeholder="" />
+          </div>
+        </div>
 
         <div class="row cols-3">
-          <div>
-            <label for="precio_cristal">Precio cristal</label>
-            <input id="precio_cristal" name="precio_cristal" inputmode="decimal" placeholder="$" />
-          </div>
           <div>
             <label for="otro_concepto">Otro concepto</label>
             <input id="otro_concepto" name="otro_concepto" placeholder="Ej: tratamiento" />

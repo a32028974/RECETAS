@@ -123,3 +123,37 @@ input[type="submit"]{ height:48px !important; }
 /* Botones de Fotos → estilo oscuro */
 #btn-foto, #btn-galeria, #btn-generar-pack{ background:#111827 !important; color:#e5e7eb !important; border-color:#1f2937 !important; }
 #btn-foto:hover, #btn-galeria:hover, #btn-generar-pack:hover{ filter:brightness(1.06); }
+
+/* ===== Panel de progreso (overlay dentro de #spinner) ===== */
+.progress-panel{
+  width:min(520px, 92vw);
+  background:#0f172a;
+  color:#e5e7eb;
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+  border:1px solid #1f2a44;
+}
+.progress-title{ font-weight:800; margin-bottom:8px; }
+.progress-note{ margin-top:8px; font-size:12px; color:#93a3b8; }
+
+.progress-list{ list-style:none; padding:0; margin:0; display:grid; gap:6px; }
+.progress-list li{
+  display:grid; grid-template-columns: 22px 1fr; align-items:center; gap:8px;
+  background:#111a2e; border:1px solid #1f2a44; border-radius:10px; padding:6px 8px;
+  font-size:14px;
+}
+.progress-list li .icon{
+  width:18px; height:18px; display:grid; place-items:center; border-radius:50%;
+  font-size:12px; line-height:1; text-align:center;
+}
+.progress-list li[data-status="todo"]  .icon{ background:#1e293b; color:#94a3b8; }
+.progress-list li[data-status="run"]   .icon{ background:#0ea5e9; color:#0b1226; }
+.progress-list li[data-status="done"]  .icon{ background:#10b981; color:#0b1226; }
+.progress-list li[data-status="error"] .icon{ background:#ef4444; color:#0b1226; }
+
+.progress-list li[data-status="todo"]  .icon::before{ content:'•'; }
+.progress-list li[data-status="run"]   .icon::before{ content:'⏳'; }
+.progress-list li[data-status="done"]  .icon::before{ content:'✓'; font-weight:900; }
+.progress-list li[data-status="error"] .icon::before{ content:'!'; font-weight:900; }
+

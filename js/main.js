@@ -5,7 +5,7 @@ import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
 
-const $  = (id) => document.getElementById(id);
+const $  = (id)  => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
 function lockForm(){ const sp = $("spinner"); if (sp) sp.style.display = 'flex'; }
@@ -119,7 +119,7 @@ function setupGraduaciones(){
     el.addEventListener('input', ()=> sanitizeGradual(el, !isAdd)); // ADD sin signos
     el.addEventListener('blur',  ()=> validateGradual(el));
 
-    // Bloquear coma siempre; y en ADD bloquear +/-
+    // Bloquear coma siempre; y en ADD bloquear +/- explícitamente
     el.addEventListener('keydown', (e)=>{
       if (e.key === ',') e.preventDefault();
       if (isAdd && (e.key === '+' || e.key === '-')) e.preventDefault();
@@ -148,6 +148,39 @@ function setupGraduaciones(){
   });
 }
 
+/* ===== Dinero: Total / Seña / Saldo ===== */
+function parseMoney(v){
+  const n = parseFloat(String(v).replace(/[^\d.-]/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+function sanitizePrice(el){
+  // solo dígitos (sin puntos, comas ni $)
+  el.value = el.value.replace(/[^\d]/g,'');
+}
+function setupCalculos(){
+  const pc = $('precio_cristal');
+  const pa = $('precio_armazon');
+  const po = $('precio_otro');
+  const se = $('sena');
+  const tot = $('total');
+  const sal = $('saldo');
+
+  function updateTotals(){
+    const total = parseMoney(pc?.value) + parseMoney(pa?.value) + parseMoney(po?.value);
+    if (tot) tot.value = String(total);                 // el $ lo pinta CSS
+    const saldo = total - parseMoney(se?.value);
+    if (sal) sal.value = String(saldo);
+  }
+
+  [pc, pa, po, se].forEach(el=>{
+    if(!el) return;
+    el.addEventListener('input', ()=>{ sanitizePrice(el); updateTotals(); });
+    el.addEventListener('change', updateTotals);
+  });
+
+  updateTotals();
+}
+
 /* ===== Impresión / Limpieza ===== */
 function buildPrintArea(){ try{ (window.__buildPrintArea||(()=>{}))(); }catch{} setTimeout(()=>window.print(),0); }
 function limpiarFormulario(){
@@ -160,7 +193,8 @@ function limpiarFormulario(){
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
   cargarFechaHoy();
-  setupGraduaciones();                // activa validaciones de graduación
+  setupGraduaciones();   // validaciones de graduación
+  setupCalculos();       // cálculos $ automático
 
   $$("input[name='entrega']").forEach(r => r.addEventListener('change', recalcularFechaRetiro));
   const fechaEnc = $('fecha'); if(fechaEnc) fechaEnc.addEventListener('change', recalcularFechaRetiro);
@@ -183,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const nAr=$('numero_armazon'), detAr=$('armazon_detalle'), prAr=$('precio_armazon');
   if(nAr){
-    const doAr = () => buscarArmazonPorNumero(nAr, detAr, prAr);
+    const doAr = () => buscarArmazonPorNumero(nAr, detAr, prAr); // Swal se maneja en ese módulo
     nAr.addEventListener('blur', doAr);
     nAr.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); doAr(); } });
     nAr.addEventListener('input', ()=>{ nAr.value = nAr.value.replace(/\D/g,'').slice(0,7); });

@@ -44,12 +44,16 @@ const generarNumeroTrabajoDesdeTelefono = () => {
 function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
 function snapToStep(n, step){ return Math.round(n / step) * step; }
 
-// Sanitiza en tiempo real: sin coma, solo + - dígitos y un punto
-function sanitizeGradual(el){
+// Sanitiza en tiempo real: sin coma; opcionalmente sin signos (para ADD)
+function sanitizeGradual(el, allowSigns = true){
   let v = el.value;
   v = v.replace(/,/g, '');            // bloquea coma
-  v = v.replace(/[^\d+.\-]/g, '');    // deja + - dígitos .
-  v = v.replace(/(?!^)[+-]/g, '');    // un solo signo y solo al inicio
+  v = v.replace(/[^\d+.\-]/g, '');    // deja + - dígitos y punto
+  if (!allowSigns) {
+    v = v.replace(/[+-]/g, '');       // ADD: sin signos
+  } else {
+    v = v.replace(/(?!^)[+-]/g, '');  // si se permiten: solo uno y al inicio
+  }
   const parts = v.split('.');
   if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
   el.value = v;
@@ -106,20 +110,30 @@ function validarEjesRequeridos(){
   return ok1 && ok2;
 }
 
-// Wireup de eventos para ESF/CIL/EJE
+// Wireup de eventos para ESF/CIL/ADD/EJE
 function setupGraduaciones(){
-  // ESF/CIL (class="grad")
+  // ESF/CIL/ADD → class="grad" (ADD además lleva class="grad-add")
   document.querySelectorAll('input.grad').forEach(el=>{
-    el.addEventListener('input', ()=> sanitizeGradual(el));
+    const isAdd = el.classList.contains('grad-add');
+
+    el.addEventListener('input', ()=> sanitizeGradual(el, !isAdd)); // ADD sin signos
     el.addEventListener('blur',  ()=> validateGradual(el));
-    el.addEventListener('keydown', (e)=>{ if (e.key === ',') e.preventDefault(); }); // bloquear coma
+
+    // Bloquear coma siempre; y en ADD bloquear +/-
+    el.addEventListener('keydown', (e)=>{
+      if (e.key === ',') e.preventDefault();
+      if (isAdd && (e.key === '+' || e.key === '-')) e.preventDefault();
+    });
   });
 
   // EJE
   ['od_eje','oi_eje'].forEach(id=>{
     const el = $(id);
     if (!el) return;
-    el.addEventListener('input', ()=>{ sanitizeEje(el); checkEjeRequerido(id==='od_eje' ? $('od_cil') : $('oi_cil'), el); });
+    el.addEventListener('input', ()=>{
+      sanitizeEje(el);
+      checkEjeRequerido(id==='od_eje' ? $('od_cil') : $('oi_cil'), el);
+    });
     el.addEventListener('blur',  ()=> validateEje(el));
   });
 
@@ -146,7 +160,7 @@ function limpiarFormulario(){
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
   cargarFechaHoy();
-  setupGraduaciones();                // <<< NUEVO: activa validaciones de graduación
+  setupGraduaciones();                // activa validaciones de graduación
 
   $$("input[name='entrega']").forEach(r => r.addEventListener('change', recalcularFechaRetiro));
   const fechaEnc = $('fecha'); if(fechaEnc) fechaEnc.addEventListener('change', recalcularFechaRetiro);

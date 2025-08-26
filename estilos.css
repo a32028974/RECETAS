@@ -41,8 +41,8 @@ input:focus, select:focus{ border-color:var(--primary); box-shadow:0 0 0 3px rgb
 @media (max-width:640px){ .grid-armazon{ grid-template-columns:1fr; } }
 
 .dni-wrapper{ position:relative; display:flex; align-items:center; gap:8px; }
-.inline-spinner{ width:16px; height:16px; border-radius:50%; border:3px solid #cfd6e4; border-top-color:var(--primary); display:inline-block; animation:spin 1s linear infinite; }
-@keyframes spin{ to{ transform:rotate(360deg); } }
+.inline-spinner{ width:16px; height:16px; border-radius:50%; border:3px solid #cfd6e4; border-top-color: var(--primary); display:inline-block; animation: spin 1s linear infinite; }
+@keyframes spin{ to{ transform: rotate(360deg); } }
 
 .receta{ margin-top:8px; }
 .receta h3{ margin:12px 0 6px; font-size:13px; color:#374151; letter-spacing:.3px; }
@@ -57,20 +57,22 @@ button, input[type="submit"], .btn-secondary{
   height:38px; padding:0 14px; font-weight:700; font-size:13px; color:#fff; background:var(--primary);
 }
 button:hover, input[type="submit"]:hover, .btn-secondary:hover{ filter:brightness(1.05); }
-button:active, input[type="submit"]:active{ transform:translateY(1px); }
+button:active, input[type="submit"]:active{ transform: translateY(1px); }
 .btn-secondary{ background:#111827; color:#e5e7eb; border-color:#1f2937; text-decoration:none; display:inline-flex; align-items:center; }
 
 /* Totales */
-.totales{ display:grid; gap:12px; grid-template-columns:repeat(4,1fr); margin-top:8px; }
-@media (max-width:980px){ .totales{ grid-template-columns:1fr 1fr; } }
-@media (max-width:640px){ .totales{ grid-template-columns:1fr; } }
+.totales{ display:grid; gap:12px; grid-template-columns: repeat(4, 1fr); margin-top:8px; }
+@media (max-width:980px){ .totales{ grid-template-columns: 1fr 1fr; } }
+@media (max-width:640px){ .totales{ grid-template-columns: 1fr; } }
 
 .muted{ color:var(--muted); font-size:12px; max-width:1180px; margin:6px auto; padding:0 10px; }
 .sub{ color:#9aa4b2; font-size:12px; }
 
 /* Galería de fotos */
 .galeria{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-.galeria img,.galeria canvas,.galeria .ph{ width:130px; height:130px; border-radius:10px; object-fit:cover; border:1px solid #d7ddea; background:#f4f7ff; position:relative; }
+.galeria img, .galeria canvas, .galeria .ph{
+  width:130px; height:130px; border-radius:10px; object-fit:cover; border:1px solid #d7ddea; background:#f4f7ff; position:relative;
+}
 .galeria .ph{ display:grid; place-items:center; color:#94a3b8; }
 .galeria:empty{ min-height:140px; border:1px dashed #d7ddea; border-radius:10px; display:grid; place-items:center; color:#94a3b8; }
 .galeria:empty::before{ content:"Sin fotos todavía"; font-size:12px; }
@@ -79,20 +81,35 @@ button:active, input[type="submit"]:active{ transform:translateY(1px); }
 .acciones{ max-width:1180px; margin:0 auto; padding:8px 10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .btns-left{ display:flex; gap:8px; flex-wrap:wrap; }
 
-/* Overlay general (no confundir con modal cámara) */
-.spinner{ position:fixed; inset:0; background:rgba(255,255,255,.65); display:none; align-items:center; justify-content:center; flex-direction:column; z-index:9999; }
-.spinner .loader{ width:44px; height:44px; border-radius:50%; border:5px solid #cfd6e4; border-top-color:var(--primary); animation:spin 1s linear infinite; }
-.spinner .spinner-text{ margin-top:10px; font-weight:600; color:#374151; }
+/* ===== Overlay general (coincide con index.html: #spinner.spinner-screen) ===== */
+.spinner-screen{
+  position:fixed; inset:0;
+  background:rgba(17,24,39,.6);
+  display:none; align-items:center; justify-content:center;
+  z-index:1000;
+}
+.spinner-screen .spinner{
+  width:64px; height:64px; border-radius:50%;
+  border:6px solid #fff; border-top-color:#1b64f2;
+  animation:spin 1s linear infinite;
+}
 
 /* ===== Modal cámara ===== */
 .cam-modal[hidden]{ display:none; }
-.cam-modal{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:grid; place-items:center; z-index:10000; padding:16px; }
+.cam-modal{
+  position:fixed; inset:0; background:rgba(0,0,0,.6);
+  display:grid; place-items:center; z-index:10000; padding:16px;
+}
 .cam-dialog{
   width:min(960px,100%); max-height:90vh;
-  background:#0f172a; color:#e5e7eb; border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.45);
+  background:#0f172a; color:#e5e7eb;
+  border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.45);
   border:1px solid #1f2a44; display:flex; flex-direction:column;
 }
-.cam-head{ display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid #1f2a44; font-weight:700; }
+.cam-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; border-bottom:1px solid #1f2a44; font-weight:700;
+}
 .cam-close{ background:transparent; border:1px solid #2a3b66; color:#cbd5e1; border-radius:10px; padding:6px 10px; cursor:pointer; }
 
 .cam-body{ flex:1; overflow:auto; padding:12px; }
@@ -121,7 +138,9 @@ button:active, input[type="submit"]:active{ transform:translateY(1px); }
 input[type="submit"]{ height:48px !important; }
 
 /* Botones de Fotos → estilo oscuro */
-#btn-foto, #btn-galeria, #btn-generar-pack{ background:#111827 !important; color:#e5e7eb !important; border-color:#1f2937 !important; }
+#btn-foto, #btn-galeria, #btn-generar-pack{
+  background:#111827 !important; color:#e5e7eb !important; border-color:#1f2937 !important;
+}
 #btn-foto:hover, #btn-galeria:hover, #btn-generar-pack:hover{ filter:brightness(1.06); }
 
 /* ===== Panel de progreso (overlay dentro de #spinner) ===== */
@@ -156,4 +175,3 @@ input[type="submit"]{ height:48px !important; }
 .progress-list li[data-status="run"]   .icon::before{ content:'⏳'; }
 .progress-list li[data-status="done"]  .icon::before{ content:'✓'; font-weight:900; }
 .progress-list li[data-status="error"] .icon::before{ content:'!'; font-weight:900; }
-

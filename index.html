@@ -6,12 +6,9 @@
   <title>Óptica Cristal • Carga de trabajos</title>
   <meta name="theme-color" content="#111827" />
   <link rel="icon" type="image/png" href="logo.png" />
-  <!-- Estilos principales -->
-  <link rel="stylesheet" href="estilos.css?v=2025-08-25" />
-  <!-- SweetAlert para avisos -->
+  <link rel="stylesheet" href="estilos.css?v=2025-08-26" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <!-- Ajustes mínimos del layout (esta hoja pisa valores del CSS externo donde hace falta) -->
   <style>
     :root{ --gap:12px; }
     body{ margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:#f5f7fb; color:#1f2937; }
@@ -19,14 +16,12 @@
     .card{ background:#fff; border-radius:18px; box-shadow:0 12px 30px rgba(0,0,0,.08); padding:clamp(12px,1.5vw,18px); }
     .grid{ display:grid; gap:var(--gap); }
     .grid.two{ grid-template-columns: 1fr; }
-    .grid.three{ grid-template-columns: 1fr; }
     .row{ display:grid; gap:var(--gap); }
-    .row.cols-2{ grid-template-columns: 3fr 1fr; } /* 75% / 25% */
+    .row.cols-2{ grid-template-columns: 3fr 1fr; }
     .row.cols-3{ grid-template-columns: 1fr 1fr 1fr; }
     .row.cols-4{ grid-template-columns: repeat(4, 1fr); }
     @media (min-width: 800px){
       .grid.two{ grid-template-columns: 1.2fr .8fr; align-items:start; }
-      .grid.three{ grid-template-columns: 1fr 1fr 1fr; }
     }
     label{ font-size:13px; color:#374151; }
     input, select, textarea{ width:100%; padding:10px 12px; border:1px solid #e5e7eb; border-radius:12px; font-size:14px; background:#fff; }
@@ -63,7 +58,7 @@
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1>Óptica Cristal<span class="muted"></span></h1>
+            <h1>Óptica Cristal v5</h1>
             <div class="small muted"></div>
           </div>
         </div>
@@ -106,12 +101,10 @@
               <span class="pill">Buscando…</span>
             </div>
           </div>
-
           <div>
             <label for="nombre">Apellido y nombre</label>
             <input id="nombre" name="nombre" placeholder="Apellido primero">
           </div>
-
           <div>
             <label for="telefono">Teléfono</label>
             <input id="telefono" name="telefono" autocomplete="tel" placeholder="">
@@ -133,20 +126,14 @@
         <div class="row cols-4">
           <div>
             <label for="od_esf">OD ESF</label>
-            <input id="od_esf" name="od_esf"
-                   class="grad grad-esf"
-                   type="text" inputmode="numeric"
-                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
-                   placeholder="+2.50 / -1.75"
+            <input id="od_esf" name="od_esf" class="grad grad-esf" type="text" inputmode="numeric"
+                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?" placeholder="+2.50 / -1.75"
                    data-min="-30" data-max="20" data-step="0.25" />
           </div>
           <div>
             <label for="od_cil">OD CIL</label>
-            <input id="od_cil" name="od_cil"
-                   class="grad grad-cil"
-                   type="text" inputmode="numeric"
-                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
-                   placeholder="-0.75"
+            <input id="od_cil" name="od_cil" class="grad grad-cil" type="text" inputmode="numeric"
+                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?" placeholder="-0.75"
                    data-min="-7" data-max="7" data-step="0.25" />
           </div>
           <div>
@@ -159,20 +146,14 @@
         <div class="row cols-4">
           <div>
             <label for="oi_esf">OI ESF</label>
-            <input id="oi_esf" name="oi_esf"
-                   class="grad grad-esf"
-                   type="text" inputmode="numeric"
-                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
-                   placeholder="+2.50 / -1.75"
+            <input id="oi_esf" name="oi_esf" class="grad grad-esf" type="text" inputmode="numeric"
+                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?" placeholder="+2.50 / -1.75"
                    data-min="-30" data-max="20" data-step="0.25" />
           </div>
           <div>
             <label for="oi_cil">OI CIL</label>
-            <input id="oi_cil" name="oi_cil"
-                   class="grad grad-cil"
-                   type="text" inputmode="numeric"
-                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
-                   placeholder="-0.75"
+            <input id="oi_cil" name="oi_cil" class="grad grad-cil" type="text" inputmode="numeric"
+                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?" placeholder="-0.75"
                    data-min="-7" data-max="7" data-step="0.25" />
           </div>
           <div>
@@ -192,12 +173,8 @@
           </div>
           <div>
             <label for="add">ADD</label>
-            <input id="add" name="add"
-                   class="grad grad-add"
-                   type="text" inputmode="numeric"
-                   pattern="[0-9]+(?:\.[0-9]{1,2})?"
-                   placeholder="0.00"
-                   data-min="0" data-max="5" data-step="0.25" />
+            <input id="add" name="add" class="grad grad-add" type="text" inputmode="numeric"
+                   pattern="[0-9]+(?:\.[0-9]{1,2})?" placeholder="0.00" data-min="0" data-max="5" data-step="0.25" />
           </div>
         </div>
 
@@ -224,25 +201,15 @@
         </div>
       </section>
 
-      <!-- Columna derecha: armazón + totales -->
+      <!-- Columna derecha -->
       <aside class="grid" aria-label="Armazón y totales">
         <div class="card grid">
           <div class="row cols-3">
             <div>
               <label for="numero_armazon">Nº armazón</label>
-              <input
-                id="numero_armazon"
-                name="numero_armazon"
-                type="text"
-                inputmode="text"
-                autocapitalize="characters"
-                autocorrect="off"
-                spellcheck="false"
-                autocomplete="off"
-                maxlength="12"
-                pattern="^[A-Za-z0-9-]+$"
-                placeholder="Ej: 13336 o RB1130"/>
-
+              <input id="numero_armazon" name="numero_armazon" type="text" inputmode="text"
+                     autocapitalize="characters" autocorrect="off" spellcheck="false" autocomplete="off"
+                     maxlength="12" pattern="^[A-Za-z0-9-]+$" placeholder="Ej: 13336 o RB1130"/>
               <div id="armazon-loading" class="inline-loader" hidden>
                 <span class="pill">Buscando…</span>
               </div>
@@ -273,15 +240,17 @@
           </div>
         </div>
 
-        <!-- ==== Cámara + Galería ==== -->
+        <!-- NUEVO: bloque de Foto/Galería -->
         <div class="card grid no-print">
           <div class="actions">
             <button id="btn-foto"    type="button" class="secondary">📷 Foto</button>
             <button id="btn-galeria" type="button" class="secondary">🖼️ Galería</button>
           </div>
-
           <div id="galeria-fotos" class="galeria"></div>
+        </div>
 
+        <!-- Acciones (se mantienen) -->
+        <div class="card grid no-print">
           <div class="actions">
             <button id="btn-imprimir" type="button" class="ghost">Imprimir</button>
             <button id="btn-limpiar"   type="button" class="secondary">Limpiar</button>
@@ -289,6 +258,7 @@
           </div>
         </div>
 
+        <!-- Historial -->
         <div class="card">
           <h3 style="margin:0 0 8px 0; font-size:16px;">Historial</h3>
           <div class="row cols-3">
@@ -302,29 +272,34 @@
     </form>
   </div>
 
-  <!-- Modal de cámara que usa js/fotoPack.js -->
+  <!-- Modal de cámara -->
   <div id="cam-modal" class="cam-modal" hidden>
     <div class="cam-dialog">
       <div class="cam-head">
-        <strong>Cámara</strong>
+        <span>Cámara</span>
         <button id="cam-close-x" class="cam-close" type="button">Cerrar</button>
       </div>
 
-      <video id="cam-video" autoplay playsinline></video>
-
-      <div id="cam-preview" style="display:none; margin-top:8px;">
-        <canvas id="cam-shot"></canvas>
+      <div class="cam-body">
+        <video id="cam-video" playsinline></video>
+        <div id="cam-preview">
+          <canvas id="cam-shot"></canvas>
+        </div>
       </div>
 
       <div class="cam-actions">
-        <button id="cam-tomar"   type="button">Tomar</button>
-        <button id="cam-usar"    type="button" disabled>Usar</button>
+        <button id="cam-tomar" type="button">Tomar foto</button>
+        <button id="cam-usar"  type="button" disabled>Usar esta</button>
         <button id="cam-cancelar" type="button">Cancelar</button>
       </div>
     </div>
   </div>
 
-  <!-- Módulos JS -->
+  <!-- Scripts -->
   <script type="module" src="./js/main.js"></script>
+  <script type="module">
+    import { initPhotoPack } from './js/fotoPack.js';
+    initPhotoPack();
+  </script>
 </body>
 </html>

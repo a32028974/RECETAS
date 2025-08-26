@@ -1,10 +1,15 @@
-// js/fotoPack.js
-// Cámara + Galería
+// js/fotopack.js
+// ==============================
+// Cámara + Galería (tablet/PC)
+// ==============================
+
 let stream = null;
 const $  = (s) => document.querySelector(s);
+
+// almacenamiento de fotos en memoria (dataURL "data:image/jpeg;base64,...")
 window.__FOTOS = Array.isArray(window.__FOTOS) ? window.__FOTOS : [];
 
-// ---------- helpers ----------
+// helpers de compresión y render miniaturas
 async function compressDataURL(dataURL, maxSide = 1280, quality = 0.85) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -12,17 +17,19 @@ async function compressDataURL(dataURL, maxSide = 1280, quality = 0.85) {
       const w = img.naturalWidth || img.width;
       const h = img.naturalHeight || img.height;
       let newW = w, newH = h;
+
       if (Math.max(w, h) > maxSide) {
         if (w >= h) { newW = maxSide; newH = Math.round(h * (maxSide / w)); }
         else        { newH = maxSide; newW = Math.round(w * (maxSide / h)); }
       }
+
       const canvas = document.createElement("canvas");
       canvas.width = newW; canvas.height = newH;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, newW, newH);
       resolve(canvas.toDataURL("image/jpeg", quality));
     };
-    img.onerror = () => resolve(dataURL);
+    img.onerror = () => resolve(dataURL); // si falla, devolvémos la original
     img.src = dataURL;
   });
 }
@@ -99,7 +106,9 @@ async function filesToPhotos(files) {
   }
 }
 
-// ---------- init ----------
+// ==============================
+// init principal
+// ==============================
 export function initPhotoPack() {
   const modal       = $("#cam-modal");
   const video       = $("#cam-video");
@@ -110,14 +119,15 @@ export function initPhotoPack() {
   const canvas      = $("#cam-shot");
   const previewWrap = $("#cam-preview");
   const btnCloseX   = $("#cam-close-x");
-  const actionsBar  = document.querySelector(".cam-actions");
 
   // galería
   const btnGaleria  = $("#btn-galeria");
   const inputGaleria= createGalleryInputIfMissing();
+
+  // render inicial
   renderGaleria();
 
-  // Galería (tablet/PC)
+  // ========== GALERÍA ==========
   if (btnGaleria && inputGaleria) {
     btnGaleria.addEventListener("click", () => inputGaleria.click());
     inputGaleria.addEventListener("change", async () => {
@@ -126,7 +136,7 @@ export function initPhotoPack() {
     });
   }
 
-  // Cámara
+  // ========= CÁMARA =========
   if (!modal || !video || !btnOpen || !btnTomar || !btnUsar || !btnCancelar || !canvas || !previewWrap) {
     console.warn("Faltan elementos del modal de cámara. Solo funcionará la galería.");
     return;
@@ -141,10 +151,12 @@ export function initPhotoPack() {
   function closeModal() {
     modal.setAttribute("hidden", "");
     document.body.classList.remove("cam-open");
+    document.body.style.overflow = '';
     stopStream();
     btnUsar.disabled = true;
     previewWrap.style.display = "none";
   }
+
   async function openCamera() {
     try {
       stopStream();
@@ -156,17 +168,18 @@ export function initPhotoPack() {
       await video.play();
       modal.removeAttribute("hidden");
       document.body.classList.add("cam-open");
+      document.body.style.overflow = 'hidden'; // evita scroll del body bajo el modal
       btnUsar.disabled = true;
       previewWrap.style.display = "none";
     } catch (err) {
       console.error("getUserMedia error:", err);
-      // fallback a input capture nativo
       const f = document.createElement("input");
       f.type = "file"; f.accept = "image/*"; f.capture = "environment";
       f.onchange = async () => { await filesToPhotos(f.files); };
       f.click();
     }
   }
+
   window.__openCameraModal = openCamera;
 
   btnOpen.addEventListener("click", openCamera);
@@ -182,10 +195,12 @@ export function initPhotoPack() {
     previewWrap.style.display = "block";
     btnUsar.disabled = false;
 
-    // Asegurar que los botones queden visibles en tablet
-    try {
-      (actionsBar || previewWrap).scrollIntoView({ behavior: "smooth", block: "end" });
-    } catch {}
+    // Asegurá que la barra de acciones quede visible y el botón usable reciba foco:
+    const actions = modal.querySelector('.cam-actions');
+    if (actions) {
+      try { actions.scrollIntoView({ behavior:'smooth', block:'end' }); } catch {}
+    }
+    try { btnUsar.focus({ preventScroll:false }); } catch {}
   });
 
   btnUsar.addEventListener("click", async () => {
@@ -194,7 +209,6 @@ export function initPhotoPack() {
     closeModal();
   });
 
-  // limpiar galería al apretar "Limpiar"
   const btnLimpiar = document.getElementById("btn-limpiar");
   if (btnLimpiar) {
     btnLimpiar.addEventListener("click", () => {

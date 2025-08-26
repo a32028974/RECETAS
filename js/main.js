@@ -4,6 +4,7 @@ import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
+import { initPhotoPack } from './fotoPack.js';   // << NUEVO
 
 const $  = (id)  => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
@@ -187,6 +188,7 @@ function limpiarFormulario(){
   const form=$('formulario'); if(!form) return;
   form.reset(); cargarFechaHoy();
   const gal=$('galeria-fotos'); if(gal) gal.innerHTML='';
+  if (Array.isArray(window.__FOTOS)) window.__FOTOS.length = 0; // limpia fotos
   recalcularFechaRetiro();
 }
 
@@ -215,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dni.addEventListener('input', ()=>{ dni.value = dni.value.replace(/\D/g,''); });
   }
 
-  // Nº armazón: ahora ALFANUM (A-Z, 0-9, -), sin espacios, uppercase
+  // Nº armazón: ALFANUM (A-Z, 0-9, -), sin espacios, uppercase
   const nAr=$('numero_armazon'), detAr=$('armazon_detalle'), prAr=$('precio_armazon');
   if(nAr){
     const doAr = () => buscarArmazonPorNumero(nAr, detAr, prAr); // Swal se maneja en ese módulo
@@ -237,6 +239,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnImp=$('btn-imprimir'); if(btnImp) btnImp.addEventListener('click', buildPrintArea);
   const btnClr=$('btn-limpiar'); if(btnClr) btnClr.addEventListener('click', limpiarFormulario);
+
+  // Inicializar cámara/galería (usa fotoPack.js)
+  initPhotoPack(); // << NUEVO
 
   const form=$('formulario');
   if(form){

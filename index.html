@@ -10,8 +10,9 @@
   <link rel="stylesheet" href="estilos.css?v=2025-08-25" />
   <!-- SweetAlert para avisos -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Ajustes mínimos del layout (esta hoja pisa valores del CSS externo donde hace falta) -->
   <style>
-    /* Ajustes mínimos para estructura sin aplastar alturas */
     :root{ --gap:12px; }
     body{ margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:#f5f7fb; color:#1f2937; }
     .wrap{ max-width:1200px; margin:0 auto; padding:clamp(12px,2vw,24px); display:grid; gap:var(--gap); }
@@ -20,7 +21,7 @@
     .grid.two{ grid-template-columns: 1fr; }
     .grid.three{ grid-template-columns: 1fr; }
     .row{ display:grid; gap:var(--gap); }
-    .row.cols-2{ grid-template-columns: 3fr 1fr; }
+    .row.cols-2{ grid-template-columns: 3fr 1fr; }        /* 75% / 25% */
     .row.cols-3{ grid-template-columns: 1fr 1fr 1fr; }
     .row.cols-4{ grid-template-columns: repeat(4, 1fr); }
     @media (min-width: 800px){
@@ -43,20 +44,18 @@
     .seg label{ display:flex; align-items:center; gap:6px; background:#f3f4f6; padding:8px 10px; border-radius:10px; cursor:pointer; }
     .seg input{ width:auto; }
     .small{ font-size:12px; }
-    .table{ width:100%; border-collapse:collapse; }
-    .table th,.table td{ text-align:left; padding:8px 10px; border-bottom:1px solid #e5e7eb; font-size:14px; }
     .pill{ display:inline-block; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#1b64f2; font-weight:600; }
     .inline-loader{ display:inline-flex; align-items:center; gap:8px; }
     .inline-loader[hidden]{ display:none; }
     .spinner-screen{ position:fixed; inset:0; background:rgba(17,24,39,.6); display:none; align-items:center; justify-content:center; z-index:1000; }
     .spinner{ width:64px; height:64px; border-radius:50%; border:6px solid #fff; border-top-color:#1b64f2; animation:spin 1s linear infinite; }
     @keyframes spin{ to{ transform:rotate(360deg); } }
-    /* Área de impresión (se genera dinámicamente con __buildPrintArea) */
     @media print{ .no-print{ display:none !important; } }
   </style>
 </head>
 <body>
   <div id="spinner" class="spinner-screen no-print"><div class="spinner"></div></div>
+
   <div class="wrap">
     <!-- ENCABEZADO -->
     <div class="card">
@@ -78,7 +77,7 @@
     </div>
 
     <form id="formulario" class="grid two" autocomplete="off">
-      <!-- Columna izquierda: datos del trabajo -->
+      <!-- Columna izquierda -->
       <section class="card grid" aria-label="Datos del trabajo">
         <div class="row cols-3">
           <div>
@@ -100,97 +99,89 @@
         </div>
 
         <div class="row cols-3">
-  <!-- Col 1: DNI -->
-  <div>
-    <label for="dni">DNI</label>
-    <input id="dni" name="dni" inputmode="numeric" placeholder="">
-    <div id="dni-loading" class="inline-loader" hidden>
-      <span class="pill">Buscando…</span>
-    </div>
-  </div>
+          <div>
+            <label for="dni">DNI</label>
+            <input id="dni" name="dni" inputmode="numeric" placeholder="">
+            <div id="dni-loading" class="inline-loader" hidden>
+              <span class="pill">Buscando…</span>
+            </div>
+          </div>
 
-  <!-- Col 2: Apellido y nombre -->
-  <div>
-    <label for="nombre">Apellido y nombre</label>
-    <input id="nombre" name="nombre" placeholder="Apellido primero">
-  </div>
+          <div>
+            <label for="nombre">Apellido y nombre</label>
+            <input id="nombre" name="nombre" placeholder="Apellido primero">
+          </div>
 
-  <!-- Col 3: Teléfono -->
-  <div>
-    <label for="telefono">Teléfono</label>
-    <input id="telefono" name="telefono" autocomplete="tel" placeholder="">
-  </div>
-</div>
+          <div>
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" name="telefono" autocomplete="tel" placeholder="">
+          </div>
+        </div>
 
         <div class="row cols-2">
-  <div>
-    <label for="cristal">Tipo de cristal</label>
-    <input id="cristal" name="cristal" placeholder="Monofocal / Bifocal / etc." />
-  </div>
-  <div>
-    <label for="precio_cristal">Precio cristal</label>
-    <input id="precio_cristal" name="precio_cristal" placeholder="$" inputmode="numeric" />
-  </div>
-</div>  
-        
+          <div>
+            <label for="cristal">Tipo de cristal</label>
+            <input id="cristal" name="cristal" placeholder="Monofocal / Bifocal / etc." />
+          </div>
+          <div>
+            <label for="precio_cristal">Precio cristal</label>
+            <div class="money"><input id="precio_cristal" name="precio_cristal" inputmode="numeric" /></div>
+          </div>
+        </div>
+
         <!-- OD -->
-<div class="row cols-4">
-  <div>
-    <label for="od_esf">OD ESF</label>
-    <input id="od_esf" name="od_esf"
-      class="grad grad-esf"
-      type="text" inputmode="numeric"
-      pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
-      placeholder="+2.50 / -1.75"
-      data-min="-30" data-max="20" data-step="0.25" />
-  </div>
-  <div>
-    <label for="od_cil">OD CIL</label>
-    <input id="od_cil" name="od_cil"
-      class="grad grad-cil"
-      type="text" inputmode="numeric"
-      pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
-      placeholder="-0.75"
-      data-min="-7" data-max="7" data-step="0.25" />
-  </div>
-  <div>
-    <label for="od_eje">OD EJE (0–180)</label>
-    <input id="od_eje" name="od_eje"
-      type="text" inputmode="numeric"
-      pattern="[0-9]{1,3}" placeholder="EJE" />
-  </div>
-</div>
+        <div class="row cols-4">
+          <div>
+            <label for="od_esf">OD ESF</label>
+            <input id="od_esf" name="od_esf"
+                   class="grad grad-esf"
+                   type="text" inputmode="numeric"
+                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
+                   placeholder="+2.50 / -1.75"
+                   data-min="-30" data-max="20" data-step="0.25" />
+          </div>
+          <div>
+            <label for="od_cil">OD CIL</label>
+            <input id="od_cil" name="od_cil"
+                   class="grad grad-cil"
+                   type="text" inputmode="numeric"
+                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
+                   placeholder="-0.75"
+                   data-min="-7" data-max="7" data-step="0.25" />
+          </div>
+          <div>
+            <label for="od_eje">OD EJE (0–180)</label>
+            <input id="od_eje" name="od_eje" type="text" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="EJE" />
+          </div>
+        </div>
 
-<!-- OI -->
-<div class="row cols-4">
-  <div>
-    <label for="oi_esf">OI ESF</label>
-    <input id="oi_esf" name="oi_esf"
-      class="grad grad-esf"
-      type="text" inputmode="numeric"
-      pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
-      placeholder="+2.50 / -1.75"
-      data-min="-30" data-max="20" data-step="0.25" />
-  </div>
-  <div>
-    <label for="oi_cil">OI CIL</label>
-    <input id="oi_cil" name="oi_cil"
-      class="grad grad-cil"
-      type="text" inputmode="numeric"
-      pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
-      placeholder="-0.75"
-      data-min="-7" data-max="7" data-step="0.25" />
-  </div>
-  <div>
-    <label for="oi_eje">OI EJE (0–180)</label>
-    <input id="oi_eje" name="oi_eje"
-      type="text" inputmode="numeric"
-      pattern="[0-9]{1,3}" placeholder="EJE" />
-  </div>
-</div>
+        <!-- OI -->
+        <div class="row cols-4">
+          <div>
+            <label for="oi_esf">OI ESF</label>
+            <input id="oi_esf" name="oi_esf"
+                   class="grad grad-esf"
+                   type="text" inputmode="numeric"
+                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
+                   placeholder="+2.50 / -1.75"
+                   data-min="-30" data-max="20" data-step="0.25" />
+          </div>
+          <div>
+            <label for="oi_cil">OI CIL</label>
+            <input id="oi_cil" name="oi_cil"
+                   class="grad grad-cil"
+                   type="text" inputmode="numeric"
+                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?"
+                   placeholder="-0.75"
+                   data-min="-7" data-max="7" data-step="0.25" />
+          </div>
+          <div>
+            <label for="oi_eje">OI EJE (0–180)</label>
+            <input id="oi_eje" name="oi_eje" type="text" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="EJE" />
+          </div>
+        </div>
 
-
-<div class="row cols-3">
+        <div class="row cols-3">
           <div>
             <label for="dr">Dr.</label>
             <input id="dr" name="dr" placeholder="Jimena/Oftalm" />
@@ -200,15 +191,14 @@
             <input id="dnp" name="dnp" placeholder="30/30" />
           </div>
           <div>
-  <label for="add">ADD</label>
-  <input id="add" name="add"
-         class="grad grad-add"
-         type="text" inputmode="numeric"
-         pattern="[0-9]+(?:\.[0-9]{1,2})?"
-         placeholder="0.00"
-         data-min="0" data-max="5" data-step="0.25" />
-</div>
-
+            <label for="add">ADD</label>
+            <input id="add" name="add"
+                   class="grad grad-add"
+                   type="text" inputmode="numeric"
+                   pattern="[0-9]+(?:\.[0-9]{1,2})?"
+                   placeholder="0.00"
+                   data-min="0" data-max="5" data-step="0.25" />
+          </div>
         </div>
 
         <div class="row cols-3">
@@ -218,29 +208,29 @@
           </div>
           <div>
             <label for="precio_otro">Precio otro</label>
-            <input id="precio_otro" name="precio_otro" inputmode="decimal" placeholder="$" />
+            <div class="money"><input id="precio_otro" name="precio_otro" inputmode="numeric" /></div>
           </div>
         </div>
 
         <div class="row cols-3">
           <div>
             <label for="vendedor">Vendedor</label>
-            <input id="vendedor" name="vendedor" placeholder="" />
+            <input id="vendedor" name="vendedor" />
           </div>
           <div>
             <label for="forma_pago">Forma de pago</label>
-            <input id="forma_pago" name="forma_pago" placeholder="" />
+            <input id="forma_pago" name="forma_pago" />
           </div>
-          </div>
+        </div>
       </section>
 
-      <!-- Columna derecha: armazón + totales + fotos -->
+      <!-- Columna derecha: armazón + totales -->
       <aside class="grid" aria-label="Armazón y totales">
         <div class="card grid">
           <div class="row cols-3">
             <div>
               <label for="numero_armazon">Nº armazón</label>
-              <input id="numero_armazon" name="numero_armazon" inputmode="numeric" placeholder="" />
+              <input id="numero_armazon" name="numero_armazon" inputmode="numeric" />
               <div id="armazon-loading" class="inline-loader" hidden>
                 <span class="pill">Buscando…</span>
               </div>
@@ -251,21 +241,22 @@
             </div>
             <div>
               <label for="precio_armazon">Precio armazón</label>
-              <input id="precio_armazon" name="precio_armazon" inputmode="decimal" placeholder="$" />
+              <div class="money"><input id="precio_armazon" name="precio_armazon" inputmode="numeric" /></div>
             </div>
           </div>
+
           <div class="row cols-3">
             <div>
               <label for="total">Total</label>
-              <input id="total" name="total" inputmode="decimal" placeholder="$" />
+              <div class="money"><input id="total" name="total" inputmode="numeric" readonly /></div>
             </div>
             <div>
               <label for="sena">Seña</label>
-              <input id="sena" name="sena" inputmode="decimal" placeholder="$" />
+              <div class="money"><input id="sena" name="sena" inputmode="numeric" /></div>
             </div>
             <div>
               <label for="saldo">Saldo</label>
-              <input id="saldo" name="saldo" inputmode="decimal" placeholder="$" />
+              <div class="money"><input id="saldo" name="saldo" inputmode="numeric" readonly /></div>
             </div>
           </div>
         </div>
@@ -273,14 +264,12 @@
         <div class="card grid no-print">
           <div class="actions">
             <button id="btn-imprimir" type="button" class="ghost">Imprimir</button>
-            <button id="btn-limpiar" type="button" class="secondary">Limpiar</button>
+            <button id="btn-limpiar"   type="button" class="secondary">Limpiar</button>
             <button type="submit">Guardar</button>
           </div>
-          <!-- Galería de fotos (se completa desde fotoPack.js) -->
           <div id="galeria-fotos" class="small muted"></div>
         </div>
 
-        <!-- Historial (resultados de búsqueda) -->
         <div class="card">
           <h3 style="margin:0 0 8px 0; font-size:16px;">Historial</h3>
           <div class="row cols-3">
@@ -288,15 +277,13 @@
             <input id="hist-limit" type="number" min="1" max="500" value="100" />
             <button id="hist-buscar" type="button">Buscar</button>
           </div>
-          <div id="historial" class="small muted" style="margin-top:8px;">
-            <!-- historial.js inyecta la tabla acá -->
-          </div>
+          <div id="historial" class="small muted" style="margin-top:8px;"></div>
         </div>
       </aside>
     </form>
   </div>
 
-  <!-- Módulos JS (mantengo tu estructura actual) -->
+  <!-- Módulos JS -->
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>

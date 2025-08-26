@@ -230,8 +230,19 @@
           <div class="row cols-3">
             <div>
               <label for="numero_armazon">Nº armazón</label>
-              <input id="numero_armazon" name="numero_armazon" inputmode="text" 
-                autocapitalize="characters" pattern="[A-Za-z0-9\-]+" placeholder="Ej:13336 o Rb1130" />
+              <input
+                id="numero_armazon"
+                name="numero_armazon"
+                type="text"
+                inputmode="text"
+                autocapitalize="characters"
+                autocorrect="off"
+                spellcheck="false"
+                autocomplete="off"
+                maxlength="12"
+                pattern="^[A-Za-z0-9-]+$"
+                placeholder="Ej: 13336 o RB1130"/>
+
               <div id="armazon-loading" class="inline-loader" hidden>
                 <span class="pill">Buscando…</span>
               </div>

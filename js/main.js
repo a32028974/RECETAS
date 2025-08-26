@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const nAr=$('numero_armazon'), detAr=$('armazon_detalle'), prAr=$('precio_armazon');
   if(nAr){
-    const doAr = () => buscarArmazonPorNumero(nAr, detAr, prAr, $('spinner'));
+    const doAr = () => buscarArmazonPorNumero(nAr, detAr, prAr);
     nAr.addEventListener('blur', doAr);
     nAr.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); doAr(); } });
     nAr.addEventListener('input', ()=>{ nAr.value = nAr.value.replace(/\D/g,'').slice(0,7); });

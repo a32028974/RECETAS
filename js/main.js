@@ -1,13 +1,99 @@
-// /RECETAS/js/main.js — versión final
+// /RECETAS/js/main.js — versión con PROGRESO
 import { obtenerNumeroTrabajoDesdeTelefono } from './numeroTrabajo.js';
 import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
-import { initPhotoPack } from './fotoPack.js';   // << NUEVO
 
 const $  = (id)  => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+/* ========== PROGRESO ========== */
+// Editá estos renglones a gusto (7 pasos)
+const PROGRESS_STEPS = [
+  'Validando datos',
+  'Guardando en planilla',
+  'Generando PDF',
+  'Subiendo fotos',
+  'Guardando link del PDF',
+  'Enviando por Telegram',
+  'Listo'
+];
+
+// Crea/actualiza el overlay con la lista
+function createProgressPanel(steps = PROGRESS_STEPS) {
+  const host = $('spinner'); // reaprovechamos tu overlay
+  if (!host) return null;
+  host.style.display = 'flex';
+  host.innerHTML = `
+    <div class="progress-panel" role="dialog" aria-label="Guardando">
+      <div class="progress-title">Guardando…</div>
+      <ul class="progress-list">
+        ${steps.map((t,i)=>`<li data-status="${i===0?'run':'todo'}" data-step="${t}">
+            <span class="icon"></span><span class="txt">${t}</span>
+          </li>`).join('')}
+      </ul>
+      <div class="progress-note">No cierres esta ventana.</div>
+    </div>
+  `;
+  return host.querySelector('.progress-panel');
+}
+function hideProgressPanel() {
+  const host = $('spinner');
+  if (!host) return;
+  host.style.display = 'none';
+  host.innerHTML = `<div class="spinner"></div>`; // restauramos
+}
+function progressAPI(steps = PROGRESS_STEPS) {
+  createProgressPanel(steps);
+  const lis = Array.from(document.querySelectorAll('.progress-list li'));
+  let idx = 0;
+  let timer = null;
+
+  function setStatus(i, status) {
+    const li = lis[i]; if (!li) return;
+    li.setAttribute('data-status', status);
+  }
+  function next() {
+    setStatus(idx, 'done');
+    idx = Math.min(idx + 1, lis.length - 1);
+    if (lis[idx].getAttribute('data-status') === 'todo') setStatus(idx, 'run');
+  }
+  function mark(textOrIndex, status='done') {
+    let i = typeof textOrIndex === 'number'
+      ? textOrIndex
+      : lis.findIndex(li => li.dataset.step === textOrIndex);
+    if (i < 0) return;
+    // todo -> run -> done
+    // si marcamos done, adelantamos el "cursor" si corresponde
+    setStatus(i, status);
+    if (status === 'done' && i === idx) next();
+  }
+  function autoAdvance(msPerStep = 6000) { // ~45s total con 7 pasos
+    clearInterval(timer);
+    // el primero ya está "run"
+    timer = setInterval(() => {
+      if (idx >= lis.length - 1) { clearInterval(timer); return; }
+      next();
+    }, msPerStep);
+  }
+  function complete() {
+    clearInterval(timer);
+    for (let i=0;i<lis.length;i++) setStatus(i,'done');
+  }
+  function fail(msg) {
+    clearInterval(timer);
+    // marca el paso actual como error y deja el resto "todo"
+    setStatus(idx, 'error');
+    if (window.Swal) Swal.fire('Error', msg || 'No se pudo guardar', 'error');
+  }
+  function doneAndHide(delay=800) {
+    complete();
+    setTimeout(hideProgressPanel, delay);
+  }
+  return { next, mark, autoAdvance, complete, fail, doneAndHide };
+}
+/* ========== /PROGRESO ========== */
 
 function lockForm(){ const sp = $("spinner"); if (sp) sp.style.display = 'flex'; }
 function unlockForm(){ const sp = $("spinner"); if (sp) sp.style.display = 'none'; }
@@ -40,43 +126,31 @@ const generarNumeroTrabajoDesdeTelefono = () => {
   out.value = obtenerNumeroTrabajoDesdeTelefono(tel.value);
 };
 
-/* ===== Graduaciones (inputs con +/- y punto) ===== */
-// Utils
+/* ===== Graduaciones ===== */
 function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
 function snapToStep(n, step){ return Math.round(n / step) * step; }
-
-// Sanitiza en tiempo real: sin coma; opcionalmente sin signos (para ADD)
 function sanitizeGradual(el, allowSigns = true){
   let v = el.value;
-  v = v.replace(/,/g, '');            // bloquea coma
-  v = v.replace(/[^\d+.\-]/g, '');    // deja + - dígitos y punto
-  if (!allowSigns) {
-    v = v.replace(/[+-]/g, '');       // ADD: sin signos
-  } else {
-    v = v.replace(/(?!^)[+-]/g, '');  // si se permiten: solo uno y al inicio
-  }
+  v = v.replace(/,/g, '');
+  v = v.replace(/[^\d+.\-]/g, '');
+  if (!allowSigns) { v = v.replace(/[+-]/g, ''); }
+  else { v = v.replace(/(?!^)[+-]/g, ''); }
   const parts = v.split('.');
   if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
   el.value = v;
 }
-
-// Valida al salir: rango + paso y fija 2 decimales
 function validateGradual(el){
   const min  = parseFloat(el.dataset.min);
   const max  = parseFloat(el.dataset.max);
   const step = parseFloat(el.dataset.step);
   let v = el.value.trim();
-  if (!v) return; // permitir vacío
-
-  v = v.replace(/,/g, '.');           // por si pegaron coma
+  if (!v) return;
+  v = v.replace(/,/g, '.');
   const num = parseFloat(v);
   if (isNaN(num)) { el.value = ''; return; }
-
   let val = clamp(snapToStep(num, step), min, max);
   el.value = val.toFixed(2);
 }
-
-// EJE: 0..180 enteros
 function sanitizeEje(el){ el.value = el.value.replace(/\D/g, '').slice(0,3); }
 function validateEje(el){
   if (!el.value) return;
@@ -85,8 +159,6 @@ function validateEje(el){
   n = clamp(n, 0, 180);
   el.value = String(n);
 }
-
-// EJE requerido si CIL ≠ 0
 function styleEje(inp, ok){ if(!inp) return; inp.style.borderColor = ok? '#e5e7eb' : '#ef4444'; }
 function checkEjeRequerido(cilEl, ejeEl){
   const cil = parseFloat((cilEl?.value || '').replace(',', '.'));
@@ -110,24 +182,16 @@ function validarEjesRequeridos(){
   }
   return ok1 && ok2;
 }
-
-// Wireup de eventos para ESF/CIL/ADD/EJE
 function setupGraduaciones(){
-  // ESF/CIL/ADD → class="grad" (ADD además lleva class="grad-add")
   document.querySelectorAll('input.grad').forEach(el=>{
     const isAdd = el.classList.contains('grad-add');
-
-    el.addEventListener('input', ()=> sanitizeGradual(el, !isAdd)); // ADD sin signos
+    el.addEventListener('input', ()=> sanitizeGradual(el, !isAdd));
     el.addEventListener('blur',  ()=> validateGradual(el));
-
-    // Bloquear coma siempre; y en ADD bloquear +/- explícitamente
     el.addEventListener('keydown', (e)=>{
       if (e.key === ',') e.preventDefault();
       if (isAdd && (e.key === '+' || e.key === '-')) e.preventDefault();
     });
   });
-
-  // EJE
   ['od_eje','oi_eje'].forEach(id=>{
     const el = $(id);
     if (!el) return;
@@ -137,8 +201,6 @@ function setupGraduaciones(){
     });
     el.addEventListener('blur',  ()=> validateEje(el));
   });
-
-  // Cuando cambie CIL, revalidar EJE requerido
   ['od_cil','oi_cil'].forEach(id=>{
     const cil = $(id);
     const eje = $(id==='od_cil' ? 'od_eje' : 'oi_eje');
@@ -149,15 +211,12 @@ function setupGraduaciones(){
   });
 }
 
-/* ===== Dinero: Total / Seña / Saldo ===== */
+/* ===== Dinero ===== */
 function parseMoney(v){
   const n = parseFloat(String(v).replace(/[^\d.-]/g, ''));
   return isNaN(n) ? 0 : n;
 }
-function sanitizePrice(el){
-  // solo dígitos (sin puntos, comas ni $)
-  el.value = el.value.replace(/[^\d]/g,'');
-}
+function sanitizePrice(el){ el.value = el.value.replace(/[^\d]/g,''); }
 function setupCalculos(){
   const pc = $('precio_cristal');
   const pa = $('precio_armazon');
@@ -168,7 +227,7 @@ function setupCalculos(){
 
   function updateTotals(){
     const total = parseMoney(pc?.value) + parseMoney(pa?.value) + parseMoney(po?.value);
-    if (tot) tot.value = String(total);                 // el $ lo fija el CSS
+    if (tot) tot.value = String(total);
     const saldo = total - parseMoney(se?.value);
     if (sal) sal.value = String(saldo);
   }
@@ -178,7 +237,6 @@ function setupCalculos(){
     el.addEventListener('input', ()=>{ sanitizePrice(el); updateTotals(); });
     el.addEventListener('change', updateTotals);
   });
-
   updateTotals();
 }
 
@@ -188,15 +246,14 @@ function limpiarFormulario(){
   const form=$('formulario'); if(!form) return;
   form.reset(); cargarFechaHoy();
   const gal=$('galeria-fotos'); if(gal) gal.innerHTML='';
-  if (Array.isArray(window.__FOTOS)) window.__FOTOS.length = 0; // limpia fotos
   recalcularFechaRetiro();
 }
 
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
   cargarFechaHoy();
-  setupGraduaciones();   // validaciones de graduación
-  setupCalculos();       // cálculos $ automático
+  setupGraduaciones();
+  setupCalculos();
 
   $$("input[name='entrega']").forEach(r => r.addEventListener('change', recalcularFechaRetiro));
   const fechaEnc = $('fecha'); if(fechaEnc) fechaEnc.addEventListener('change', recalcularFechaRetiro);
@@ -217,17 +274,17 @@ document.addEventListener('DOMContentLoaded', () => {
     dni.addEventListener('input', ()=>{ dni.value = dni.value.replace(/\D/g,''); });
   }
 
-  // Nº armazón: ALFANUM (A-Z, 0-9, -), sin espacios, uppercase
+  // Nº armazón alfanumérico
   const nAr=$('numero_armazon'), detAr=$('armazon_detalle'), prAr=$('precio_armazon');
   if(nAr){
-    const doAr = () => buscarArmazonPorNumero(nAr, detAr, prAr); // Swal se maneja en ese módulo
+    const doAr = () => buscarArmazonPorNumero(nAr, detAr, prAr);
     nAr.addEventListener('blur', doAr);
     nAr.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); doAr(); } });
     nAr.addEventListener('input', ()=>{
       nAr.value = nAr.value
         .toUpperCase()
-        .replace(/\s+/g, '')         // quita espacios
-        .replace(/[^A-Z0-9\-]/g, ''); // sólo A-Z, 0-9, guión
+        .replace(/\s+/g, '')
+        .replace(/[^A-Z0-9\-]/g, '');
     });
   }
 
@@ -240,15 +297,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnImp=$('btn-imprimir'); if(btnImp) btnImp.addEventListener('click', buildPrintArea);
   const btnClr=$('btn-limpiar'); if(btnClr) btnClr.addEventListener('click', limpiarFormulario);
 
-  // Inicializar cámara/galería (usa fotoPack.js)
-  initPhotoPack(); // << NUEVO
-
   const form=$('formulario');
   if(form){
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
       if(!validarEjesRequeridos()) return;
-      try{ lockForm(); await guardarTrabajo(); } finally { unlockForm(); }
+
+      // PROGRESO: mostrar panel y avanzar solo (6s por paso aprox)
+      const progress = progressAPI(PROGRESS_STEPS);
+      progress.autoAdvance(6000);
+
+      try{
+        // Si querés pasos reales, dentro de guardarTrabajo podés llamar:
+        //   opts?.progress?.mark('Guardando en planilla');
+        //   opts?.progress?.mark('Generando PDF');
+        await guardarTrabajo({ progress }); // compatible con tu guardar.js actual (ignora el arg)
+
+        progress.doneAndHide(800); // marca todo ok y cierra
+      } catch (err){
+        console.error(err);
+        progress.fail(err?.message || 'Error al guardar');
+      }
     });
   }
 });

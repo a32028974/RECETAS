@@ -1,15 +1,15 @@
-// /RECETAS/js/main.js — versión con PROGRESO (event-driven + fallback)
+// /RECETAS/js/main.js — versión con PROGRESO + cámara inicializada
 import { obtenerNumeroTrabajoDesdeTelefono } from './numeroTrabajo.js';
 import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
-import { initPhotoPack } from './fotoPack.js';  // ⬅️  NUEVO
+import { initPhotoPack } from './fotopack.js';
 
 const $  = (id)  => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-/* ========== PROGRESO (lista con ticks) ========== */
+/* ========== PROGRESO ========== */
 const PROGRESS_STEPS = [
   'Validando datos',
   'Guardando en planilla',
@@ -20,9 +20,23 @@ const PROGRESS_STEPS = [
   'Listo'
 ];
 
+// Garantiza que el overlay tenga la clase correcta y existe
+function getOverlayHost() {
+  let host = $('spinner');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'spinner';
+    document.body.appendChild(host);
+  }
+  host.classList.add('spinner');            // usa tu CSS .spinner
+  host.classList.remove('spinner-screen');  // por si quedó viejo
+  return host;
+}
+
 function createProgressPanel(steps = PROGRESS_STEPS) {
-  const host = $('spinner');
-  if (!host) return null;
+  const host = getOverlayHost();
+  // guardo el HTML anterior para restaurar igualito
+  if (!host.dataset.prevHTML) host.dataset.prevHTML = host.innerHTML;
   host.style.display = 'flex';
   host.innerHTML = `
     <div class="progress-panel" role="dialog" aria-label="Guardando">
@@ -37,55 +51,59 @@ function createProgressPanel(steps = PROGRESS_STEPS) {
   `;
   return host.querySelector('.progress-panel');
 }
-function hideProgressPanel(){
-  const host = $('spinner');
-  if (!host) return;
+function hideProgressPanel() {
+  const host = getOverlayHost();
   host.style.display = 'none';
-  host.innerHTML = `<div class="spinner"></div>`;
+  // restaurar el HTML anterior (loader + texto)
+  if (host.dataset.prevHTML !== undefined) {
+    host.innerHTML = host.dataset.prevHTML;
+    delete host.dataset.prevHTML;
+  } else {
+    host.innerHTML = '';
+  }
 }
-function progressAPI(steps = PROGRESS_STEPS){
+function progressAPI(steps = PROGRESS_STEPS) {
   createProgressPanel(steps);
   const lis = Array.from(document.querySelectorAll('.progress-list li'));
   let idx = 0;
-  let watchdog = null;
-  let lastMark = Date.now();
+  let timer = null;
 
-  const setStatus = (i,s)=>{ const li=lis[i]; if(li) li.setAttribute('data-status',s); };
-  const next = ()=>{ setStatus(idx,'done'); idx=Math.min(idx+1, lis.length-1); if(lis[idx].dataset.status==='todo') setStatus(idx,'run'); };
-
-  function mark(textOrIndex, status='done'){
-    lastMark = Date.now();
-    const i = (typeof textOrIndex==='number')
+  const setStatus = (i, status) => { const li = lis[i]; if (li) li.setAttribute('data-status', status); };
+  const next = () => {
+    setStatus(idx, 'done');
+    idx = Math.min(idx + 1, lis.length - 1);
+    if (lis[idx].getAttribute('data-status') === 'todo') setStatus(idx, 'run');
+  };
+  const mark = (textOrIndex, status='done') => {
+    const i = typeof textOrIndex === 'number'
       ? textOrIndex
       : lis.findIndex(li => li.dataset.step === textOrIndex);
     if (i < 0) return;
-    if (lis[i].dataset.status === 'todo') setStatus(i,'run');
     setStatus(i, status);
-    if (status==='done' && i===idx) next();
-  }
-  function start({ fallbackMs=12000 } = {}){
-    clearInterval(watchdog);
-    watchdog = setInterval(()=>{
-      if (Date.now() - lastMark > fallbackMs && idx < lis.length-1){
-        lastMark = Date.now();
-        next();
-      }
-    }, 1000);
-  }
-  function doneAndHide(delay=800){
-    clearInterval(watchdog);
-    for (let i=0;i<lis.length;i++) setStatus(i,'done');
-    setTimeout(hideProgressPanel, delay);
-  }
-  function fail(msg){
-    clearInterval(watchdog);
-    setStatus(idx,'error');
-    if (window.Swal) Swal.fire('Error', msg||'No se pudo guardar', 'error');
-    setTimeout(hideProgressPanel, 300);
-  }
-  return { start, mark, doneAndHide, fail };
+    if (status === 'done' && i === idx) next();
+  };
+  const autoAdvance = (msPerStep = 6000) => {
+    clearInterval(timer);
+    timer = setInterval(() => {
+      if (idx >= lis.length - 1) { clearInterval(timer); return; }
+      next();
+    }, msPerStep);
+  };
+  const complete = () => { clearInterval(timer); for (let i=0;i<lis.length;i++) setStatus(i,'done'); };
+  const fail = (msg) => {
+    clearInterval(timer);
+    setStatus(idx, 'error');
+    if (window.Swal) Swal.fire('Error', msg || 'No se pudo guardar', 'error');
+  };
+  const doneAndHide = (delay=800) => { complete(); setTimeout(hideProgressPanel, delay); };
+
+  return { next, mark, autoAdvance, complete, fail, doneAndHide };
 }
 /* ========== /PROGRESO ========== */
+
+// (quedan por compatibilidad; otras partes podrían llamarlos)
+function lockForm(){ const sp = getOverlayHost(); sp.style.display = 'flex'; }
+function unlockForm(){ const sp = getOverlayHost(); sp.style.display = 'none'; }
 
 /* ===== Fechas ===== */
 function parseFechaDDMMYY(str){
@@ -120,9 +138,10 @@ function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
 function snapToStep(n, step){ return Math.round(n / step) * step; }
 function sanitizeGradual(el, allowSigns = true){
   let v = el.value;
-  v = v.replace(/,/g, '').replace(/[^\d+.\-]/g, '');
-  if (!allowSigns) v = v.replace(/[+-]/g, '');
-  else v = v.replace(/(?!^)[+-]/g, '');
+  v = v.replace(/,/g, '');
+  v = v.replace(/[^\d+.\-]/g, '');
+  if (!allowSigns) { v = v.replace(/[+-]/g, ''); }
+  else { v = v.replace(/(?!^)[+-]/g, ''); }
   const parts = v.split('.');
   if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
   el.value = v;
@@ -234,17 +253,19 @@ function limpiarFormulario(){
   const form=$('formulario'); if(!form) return;
   form.reset(); cargarFechaHoy();
   const gal=$('galeria-fotos'); if(gal) gal.innerHTML='';
+  // borro memoria de fotos si existe
+  if (Array.isArray(window.__FOTOS)) window.__FOTOS.length = 0;
   recalcularFechaRetiro();
 }
 
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
+  // Cámara + Galería
+  initPhotoPack();
+
   cargarFechaHoy();
   setupGraduaciones();
   setupCalculos();
-
-  // Cámara / Galería (importado de fotoPack.js)
-  initPhotoPack();   // ⬅️  NUEVO: ahora sí se inicializa siempre
 
   $$("input[name='entrega']").forEach(r => r.addEventListener('change', recalcularFechaRetiro));
   const fechaEnc = $('fecha'); if(fechaEnc) fechaEnc.addEventListener('change', recalcularFechaRetiro);
@@ -294,21 +315,16 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       if(!validarEjesRequeridos()) return;
 
-      // Evitar doble envío
-      const submitBtn = form.querySelector('button[type="submit"]');
-      if (submitBtn) submitBtn.disabled = true;
-
+      // PROGRESO (auto avanza para que veas “ticks” mientras espera)
       const progress = progressAPI(PROGRESS_STEPS);
-      progress.start({ fallbackMs: 12000 });
+      progress.autoAdvance(6000);
 
       try{
-        await guardarTrabajo({ progress });   // guardar.js puede llamar progress.mark(...)
+        await guardarTrabajo({ progress }); // si tu guardar.js ignora el arg, no pasa nada
         progress.doneAndHide(800);
-      }catch(err){
+      } catch (err){
         console.error(err);
         progress.fail(err?.message || 'Error al guardar');
-      }finally{
-        if (submitBtn) submitBtn.disabled = false;
       }
     });
   }

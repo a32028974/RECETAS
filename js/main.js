@@ -167,7 +167,7 @@ function setupCalculos(){
 
   function updateTotals(){
     const total = parseMoney(pc?.value) + parseMoney(pa?.value) + parseMoney(po?.value);
-    if (tot) tot.value = String(total);                 // el $ lo pinta CSS
+    if (tot) tot.value = String(total);                 // el $ lo fija el CSS
     const saldo = total - parseMoney(se?.value);
     if (sal) sal.value = String(saldo);
   }
@@ -215,12 +215,18 @@ document.addEventListener('DOMContentLoaded', () => {
     dni.addEventListener('input', ()=>{ dni.value = dni.value.replace(/\D/g,''); });
   }
 
+  // Nº armazón: ahora ALFANUM (A-Z, 0-9, -), sin espacios, uppercase
   const nAr=$('numero_armazon'), detAr=$('armazon_detalle'), prAr=$('precio_armazon');
   if(nAr){
     const doAr = () => buscarArmazonPorNumero(nAr, detAr, prAr); // Swal se maneja en ese módulo
     nAr.addEventListener('blur', doAr);
     nAr.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); doAr(); } });
-    nAr.addEventListener('input', ()=>{ nAr.value = nAr.value.replace(/\D/g,'').slice(0,7); });
+    nAr.addEventListener('input', ()=>{
+      nAr.value = nAr.value
+        .toUpperCase()
+        .replace(/\s+/g, '')         // quita espacios
+        .replace(/[^A-Z0-9\-]/g, ''); // sólo A-Z, 0-9, guión
+    });
   }
 
   const dnp=$('dnp');

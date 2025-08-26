@@ -21,7 +21,7 @@
     .grid.two{ grid-template-columns: 1fr; }
     .grid.three{ grid-template-columns: 1fr; }
     .row{ display:grid; gap:var(--gap); }
-    .row.cols-2{ grid-template-columns: 3fr 1fr; }        /* 75% / 25% */
+    .row.cols-2{ grid-template-columns: 3fr 1fr; } /* 75% / 25% */
     .row.cols-3{ grid-template-columns: 1fr 1fr 1fr; }
     .row.cols-4{ grid-template-columns: repeat(4, 1fr); }
     @media (min-width: 800px){
@@ -273,13 +273,20 @@
           </div>
         </div>
 
+        <!-- ==== Cámara + Galería ==== -->
         <div class="card grid no-print">
+          <div class="actions">
+            <button id="btn-foto"    type="button" class="secondary">📷 Foto</button>
+            <button id="btn-galeria" type="button" class="secondary">🖼️ Galería</button>
+          </div>
+
+          <div id="galeria-fotos" class="galeria"></div>
+
           <div class="actions">
             <button id="btn-imprimir" type="button" class="ghost">Imprimir</button>
             <button id="btn-limpiar"   type="button" class="secondary">Limpiar</button>
             <button type="submit">Guardar</button>
           </div>
-          <div id="galeria-fotos" class="small muted"></div>
         </div>
 
         <div class="card">
@@ -293,6 +300,28 @@
         </div>
       </aside>
     </form>
+  </div>
+
+  <!-- Modal de cámara que usa js/fotoPack.js -->
+  <div id="cam-modal" class="cam-modal" hidden>
+    <div class="cam-dialog">
+      <div class="cam-head">
+        <strong>Cámara</strong>
+        <button id="cam-close-x" class="cam-close" type="button">Cerrar</button>
+      </div>
+
+      <video id="cam-video" autoplay playsinline></video>
+
+      <div id="cam-preview" style="display:none; margin-top:8px;">
+        <canvas id="cam-shot"></canvas>
+      </div>
+
+      <div class="cam-actions">
+        <button id="cam-tomar"   type="button">Tomar</button>
+        <button id="cam-usar"    type="button" disabled>Usar</button>
+        <button id="cam-cancelar" type="button">Cancelar</button>
+      </div>
+    </div>
   </div>
 
   <!-- Módulos JS -->

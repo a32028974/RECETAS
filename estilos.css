@@ -46,11 +46,25 @@ input[type="text"], input[type="number"], input[type="date"], select{
 input::placeholder{ color:#9aa4b2; }
 input:focus, select:focus{ border-color:var(--primary); box-shadow:0 0 0 3px rgba(27,100,242,.15); }
 
+/* Prefijo $ fijo para inputs de dinero */
+.money { position: relative; }
+.money::before{
+  content: '$';
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  font-weight: 600;
+  pointer-events: none;
+}
+.money > input { padding-left: 22px; }
+
 /* Utilidades de ancho por caracteres */
 .w-7ch{ width:7ch; }
 .w-10ch{ width:10ch; }
 
-/* Grillas base */
+/* Grillas base (estas pueden ser pisadas por estilos inline del index) */
 .grid-2, .grid-3, .grid-4 { display:grid; gap:12px; }
 .grid-2{ grid-template-columns: 1fr 1fr; }
 .grid-3{ grid-template-columns: 1fr 1fr 1fr; }
@@ -76,7 +90,10 @@ input:focus, select:focus{ border-color:var(--primary); box-shadow:0 0 0 3px rgb
 .row.end{ justify-content:flex-end; }
 
 /* Botones */
-button, input[type="submit"], .btn-secondary{ appearance:none; border:1px solid transparent; border-radius:10px; cursor:pointer; height:38px; padding:0 14px; font-weight:700; font-size:13px; color:#fff; background:var(--primary); }
+button, input[type="submit"], .btn-secondary{
+  appearance:none; border:1px solid transparent; border-radius:10px; cursor:pointer;
+  height:38px; padding:0 14px; font-weight:700; font-size:13px; color:#fff; background:var(--primary);
+}
 button:hover, input[type="submit"]:hover, .btn-secondary:hover{ filter:brightness(1.05); }
 button:active, input[type="submit"]:active{ transform: translateY(1px); }
 .btn-secondary{ background:#111827; color:#e5e7eb; border-color:#1f2937; text-decoration:none; display:inline-flex; align-items:center; }
@@ -91,7 +108,9 @@ button:active, input[type="submit"]:active{ transform: translateY(1px); }
 
 /* Galería de fotos */
 .galeria{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-.galeria img, .galeria canvas, .galeria .ph{ width:130px; height:130px; border-radius:10px; object-fit:cover; border:1px solid #d7ddea; background:#f4f7ff; position:relative; }
+.galeria img, .galeria canvas, .galeria .ph{
+  width:130px; height:130px; border-radius:10px; object-fit:cover; border:1px solid #d7ddea; background:#f4f7ff; position:relative;
+}
 .galeria .ph{ display:grid; place-items:center; color:#94a3b8; }
 .galeria:empty{ min-height:140px; border:1px dashed #d7ddea; border-radius:10px; display:grid; place-items:center; color:#94a3b8; }
 .galeria:empty::before{ content:"Sin fotos todavía"; font-size:12px; }

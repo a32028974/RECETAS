@@ -1,15 +1,10 @@
 // js/fotoPack.js
-// ==============================
-// Cámara + Galería (tablet/PC)
-// ==============================
-
+// Cámara + Galería
 let stream = null;
 const $  = (s) => document.querySelector(s);
-
-// almacenamiento de fotos en memoria (dataURL "data:image/jpeg;base64,...")
 window.__FOTOS = Array.isArray(window.__FOTOS) ? window.__FOTOS : [];
 
-// helpers de compresión y render miniaturas
+// ---------- helpers ----------
 async function compressDataURL(dataURL, maxSide = 1280, quality = 0.85) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -17,19 +12,17 @@ async function compressDataURL(dataURL, maxSide = 1280, quality = 0.85) {
       const w = img.naturalWidth || img.width;
       const h = img.naturalHeight || img.height;
       let newW = w, newH = h;
-
       if (Math.max(w, h) > maxSide) {
         if (w >= h) { newW = maxSide; newH = Math.round(h * (maxSide / w)); }
         else        { newH = maxSide; newW = Math.round(w * (maxSide / h)); }
       }
-
       const canvas = document.createElement("canvas");
       canvas.width = newW; canvas.height = newH;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, newW, newH);
       resolve(canvas.toDataURL("image/jpeg", quality));
     };
-    img.onerror = () => resolve(dataURL); // si falla, devolvémos la original
+    img.onerror = () => resolve(dataURL);
     img.src = dataURL;
   });
 }
@@ -106,9 +99,7 @@ async function filesToPhotos(files) {
   }
 }
 
-// ==============================
-// init principal
-// ==============================
+// ---------- init ----------
 export function initPhotoPack() {
   const modal       = $("#cam-modal");
   const video       = $("#cam-video");
@@ -119,24 +110,23 @@ export function initPhotoPack() {
   const canvas      = $("#cam-shot");
   const previewWrap = $("#cam-preview");
   const btnCloseX   = $("#cam-close-x");
+  const actionsBar  = document.querySelector(".cam-actions");
 
   // galería
   const btnGaleria  = $("#btn-galeria");
   const inputGaleria= createGalleryInputIfMissing();
-
-  // render inicial (por si venían fotos de antes)
   renderGaleria();
 
-  // ========== GALERÍA: tablet/PC ==========
+  // Galería (tablet/PC)
   if (btnGaleria && inputGaleria) {
     btnGaleria.addEventListener("click", () => inputGaleria.click());
     inputGaleria.addEventListener("change", async () => {
       try { await filesToPhotos(inputGaleria.files); }
-      finally { inputGaleria.value = ""; } // permite re-seleccionar mismas fotos
+      finally { inputGaleria.value = ""; }
     });
   }
 
-  // ========= CÁMARA =========
+  // Cámara
   if (!modal || !video || !btnOpen || !btnTomar || !btnUsar || !btnCancelar || !canvas || !previewWrap) {
     console.warn("Faltan elementos del modal de cámara. Solo funcionará la galería.");
     return;
@@ -155,7 +145,6 @@ export function initPhotoPack() {
     btnUsar.disabled = true;
     previewWrap.style.display = "none";
   }
-
   async function openCamera() {
     try {
       stopStream();
@@ -171,15 +160,13 @@ export function initPhotoPack() {
       previewWrap.style.display = "none";
     } catch (err) {
       console.error("getUserMedia error:", err);
-      // fallback a cámara nativa (input capture)
+      // fallback a input capture nativo
       const f = document.createElement("input");
       f.type = "file"; f.accept = "image/*"; f.capture = "environment";
       f.onchange = async () => { await filesToPhotos(f.files); };
       f.click();
     }
   }
-
-  // expongo por si querés abrir la cámara desde otro módulo
   window.__openCameraModal = openCamera;
 
   btnOpen.addEventListener("click", openCamera);
@@ -194,6 +181,11 @@ export function initPhotoPack() {
     canvas.getContext("2d").drawImage(video, 0, 0, w, h);
     previewWrap.style.display = "block";
     btnUsar.disabled = false;
+
+    // Asegurar que los botones queden visibles en tablet
+    try {
+      (actionsBar || previewWrap).scrollIntoView({ behavior: "smooth", block: "end" });
+    } catch {}
   });
 
   btnUsar.addEventListener("click", async () => {
@@ -202,7 +194,7 @@ export function initPhotoPack() {
     closeModal();
   });
 
-  // limpiar galería y memoria cuando se toca "Limpiar"
+  // limpiar galería al apretar "Limpiar"
   const btnLimpiar = document.getElementById("btn-limpiar");
   if (btnLimpiar) {
     btnLimpiar.addEventListener("click", () => {
@@ -211,7 +203,6 @@ export function initPhotoPack() {
     });
   }
 
-  // Esc para cerrar modal
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modal && !modal.hasAttribute("hidden")) closeModal();
   });

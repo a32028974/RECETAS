@@ -1,4 +1,4 @@
-// /RECETAS/js/main.js — versión con PROGRESO
+// /RECETAS/js/main.js — versión con PROGRESO (event-driven + fallback)
 import { obtenerNumeroTrabajoDesdeTelefono } from './numeroTrabajo.js';
 import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
@@ -8,8 +8,8 @@ import { guardarTrabajo } from './guardar.js';
 const $  = (id)  => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-/* ========== PROGRESO ========== */
-// Editá estos renglones a gusto (7 pasos)
+/* ========== PROGRESO (lista con ticks) ========== */
+// Editá los textos si querés
 const PROGRESS_STEPS = [
   'Validando datos',
   'Guardando en planilla',
@@ -20,9 +20,8 @@ const PROGRESS_STEPS = [
   'Listo'
 ];
 
-// Crea/actualiza el overlay con la lista
 function createProgressPanel(steps = PROGRESS_STEPS) {
-  const host = $('spinner'); // reaprovechamos tu overlay
+  const host = $('spinner');              // reutilizamos tu overlay
   if (!host) return null;
   host.style.display = 'flex';
   host.innerHTML = `
@@ -38,65 +37,60 @@ function createProgressPanel(steps = PROGRESS_STEPS) {
   `;
   return host.querySelector('.progress-panel');
 }
-function hideProgressPanel() {
+function hideProgressPanel(){
   const host = $('spinner');
   if (!host) return;
   host.style.display = 'none';
-  host.innerHTML = `<div class="spinner"></div>`; // restauramos
+  host.innerHTML = `<div class="spinner"></div>`; // restauramos el loader base
 }
-function progressAPI(steps = PROGRESS_STEPS) {
+
+function progressAPI(steps = PROGRESS_STEPS){
   createProgressPanel(steps);
   const lis = Array.from(document.querySelectorAll('.progress-list li'));
   let idx = 0;
-  let timer = null;
+  let watchdog = null;
+  let lastMark = Date.now();
 
-  function setStatus(i, status) {
+  function setStatus(i, status){
     const li = lis[i]; if (!li) return;
-    li.setAttribute('data-status', status);
+    li.setAttribute('data-status', status);  // 'todo' | 'run' | 'done' | 'error'
   }
-  function next() {
-    setStatus(idx, 'done');
+  function next(){
+    setStatus(idx,'done');
     idx = Math.min(idx + 1, lis.length - 1);
-    if (lis[idx].getAttribute('data-status') === 'todo') setStatus(idx, 'run');
+    if (lis[idx].dataset.status === 'todo') setStatus(idx,'run');
   }
-  function mark(textOrIndex, status='done') {
-    let i = typeof textOrIndex === 'number'
+
+  // marcar por índice o por texto (lo llama guardar.js)
+  function mark(textOrIndex, status='done'){
+    lastMark = Date.now();
+    const i = (typeof textOrIndex==='number')
       ? textOrIndex
       : lis.findIndex(li => li.dataset.step === textOrIndex);
     if (i < 0) return;
-    // todo -> run -> done
-    // si marcamos done, adelantamos el "cursor" si corresponde
+    if (lis[i].dataset.status === 'todo') setStatus(i,'run');
     setStatus(i, status);
     if (status === 'done' && i === idx) next();
   }
-  function autoAdvance(msPerStep = 6000) { // ~45s total con 7 pasos
-    clearInterval(timer);
-    // el primero ya está "run"
-    timer = setInterval(() => {
-      if (idx >= lis.length - 1) { clearInterval(timer); return; }
-      next();
-    }, msPerStep);
+
+  // watchdog: si pasa mucho sin marcas reales, avanzamos 1 paso para mostrar “vida”
+  function start({ fallbackMs = 12000 } = {}){
+    clearInterval(watchdog);
+    watchdog = setInterval(()=>{
+      if (Date.now() - lastMark > fallbackMs && idx < lis.length - 1) {
+        lastMark = Date.now();
+        next();
+      }
+    }, 1000);
   }
-  function complete() {
-    clearInterval(timer);
-    for (let i=0;i<lis.length;i++) setStatus(i,'done');
-  }
-  function fail(msg) {
-    clearInterval(timer);
-    // marca el paso actual como error y deja el resto "todo"
-    setStatus(idx, 'error');
-    if (window.Swal) Swal.fire('Error', msg || 'No se pudo guardar', 'error');
-  }
-  function doneAndHide(delay=800) {
-    complete();
-    setTimeout(hideProgressPanel, delay);
-  }
-  return { next, mark, autoAdvance, complete, fail, doneAndHide };
+
+  function complete(){ for (let i=0;i<lis.length;i++) setStatus(i,'done'); }
+  function doneAndHide(delay=800){ clearInterval(watchdog); complete(); setTimeout(hideProgressPanel, delay); }
+  function fail(msg){ clearInterval(watchdog); setStatus(idx,'error'); if (window.Swal) Swal.fire('Error', msg||'No se pudo guardar', 'error'); }
+
+  return { start, mark, doneAndHide, fail };
 }
 /* ========== /PROGRESO ========== */
-
-function lockForm(){ const sp = $("spinner"); if (sp) sp.style.display = 'flex'; }
-function unlockForm(){ const sp = $("spinner"); if (sp) sp.style.display = 'none'; }
 
 /* ===== Fechas ===== */
 function parseFechaDDMMYY(str){
@@ -129,6 +123,7 @@ const generarNumeroTrabajoDesdeTelefono = () => {
 /* ===== Graduaciones ===== */
 function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
 function snapToStep(n, step){ return Math.round(n / step) * step; }
+
 function sanitizeGradual(el, allowSigns = true){
   let v = el.value;
   v = v.replace(/,/g, '');
@@ -192,6 +187,7 @@ function setupGraduaciones(){
       if (isAdd && (e.key === '+' || e.key === '-')) e.preventDefault();
     });
   });
+
   ['od_eje','oi_eje'].forEach(id=>{
     const el = $(id);
     if (!el) return;
@@ -201,6 +197,7 @@ function setupGraduaciones(){
     });
     el.addEventListener('blur',  ()=> validateEje(el));
   });
+
   ['od_cil','oi_cil'].forEach(id=>{
     const cil = $(id);
     const eje = $(id==='od_cil' ? 'od_eje' : 'oi_eje');
@@ -227,7 +224,7 @@ function setupCalculos(){
 
   function updateTotals(){
     const total = parseMoney(pc?.value) + parseMoney(pa?.value) + parseMoney(po?.value);
-    if (tot) tot.value = String(total);
+    if (tot) tot.value = String(total);     // el $ lo pinta el CSS
     const saldo = total - parseMoney(se?.value);
     if (sal) sal.value = String(saldo);
   }
@@ -303,18 +300,15 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       if(!validarEjesRequeridos()) return;
 
-      // PROGRESO: mostrar panel y avanzar solo (6s por paso aprox)
+      // Mostrar progreso y arrancar watchdog (si hay demoras, avanza solo)
       const progress = progressAPI(PROGRESS_STEPS);
-      progress.autoAdvance(6000);
+      progress.start({ fallbackMs: 12000 });
 
       try{
-        // Si querés pasos reales, dentro de guardarTrabajo podés llamar:
-        //   opts?.progress?.mark('Guardando en planilla');
-        //   opts?.progress?.mark('Generando PDF');
-        await guardarTrabajo({ progress }); // compatible con tu guardar.js actual (ignora el arg)
-
-        progress.doneAndHide(800); // marca todo ok y cierra
-      } catch (err){
+        // Pasamos el objeto para que guardar.js marque pasos reales con progress.mark(...)
+        await guardarTrabajo({ progress });
+        progress.doneAndHide(800);
+      }catch(err){
         console.error(err);
         progress.fail(err?.message || 'Error al guardar');
       }

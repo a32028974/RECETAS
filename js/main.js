@@ -4,12 +4,12 @@ import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
+import { initPhotoPack } from './fotoPack.js';  // ⬅️  NUEVO
 
 const $  = (id)  => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
 /* ========== PROGRESO (lista con ticks) ========== */
-// Editá los textos si querés
 const PROGRESS_STEPS = [
   'Validando datos',
   'Guardando en planilla',
@@ -21,7 +21,7 @@ const PROGRESS_STEPS = [
 ];
 
 function createProgressPanel(steps = PROGRESS_STEPS) {
-  const host = $('spinner');              // reutilizamos tu overlay
+  const host = $('spinner');
   if (!host) return null;
   host.style.display = 'flex';
   host.innerHTML = `
@@ -41,9 +41,8 @@ function hideProgressPanel(){
   const host = $('spinner');
   if (!host) return;
   host.style.display = 'none';
-  host.innerHTML = `<div class="spinner"></div>`; // restauramos el loader base
+  host.innerHTML = `<div class="spinner"></div>`;
 }
-
 function progressAPI(steps = PROGRESS_STEPS){
   createProgressPanel(steps);
   const lis = Array.from(document.querySelectorAll('.progress-list li'));
@@ -51,17 +50,9 @@ function progressAPI(steps = PROGRESS_STEPS){
   let watchdog = null;
   let lastMark = Date.now();
 
-  function setStatus(i, status){
-    const li = lis[i]; if (!li) return;
-    li.setAttribute('data-status', status);  // 'todo' | 'run' | 'done' | 'error'
-  }
-  function next(){
-    setStatus(idx,'done');
-    idx = Math.min(idx + 1, lis.length - 1);
-    if (lis[idx].dataset.status === 'todo') setStatus(idx,'run');
-  }
+  const setStatus = (i,s)=>{ const li=lis[i]; if(li) li.setAttribute('data-status',s); };
+  const next = ()=>{ setStatus(idx,'done'); idx=Math.min(idx+1, lis.length-1); if(lis[idx].dataset.status==='todo') setStatus(idx,'run'); };
 
-  // marcar por índice o por texto (lo llama guardar.js)
   function mark(textOrIndex, status='done'){
     lastMark = Date.now();
     const i = (typeof textOrIndex==='number')
@@ -70,24 +61,28 @@ function progressAPI(steps = PROGRESS_STEPS){
     if (i < 0) return;
     if (lis[i].dataset.status === 'todo') setStatus(i,'run');
     setStatus(i, status);
-    if (status === 'done' && i === idx) next();
+    if (status==='done' && i===idx) next();
   }
-
-  // watchdog: si pasa mucho sin marcas reales, avanzamos 1 paso para mostrar “vida”
-  function start({ fallbackMs = 12000 } = {}){
+  function start({ fallbackMs=12000 } = {}){
     clearInterval(watchdog);
     watchdog = setInterval(()=>{
-      if (Date.now() - lastMark > fallbackMs && idx < lis.length - 1) {
+      if (Date.now() - lastMark > fallbackMs && idx < lis.length-1){
         lastMark = Date.now();
         next();
       }
     }, 1000);
   }
-
-  function complete(){ for (let i=0;i<lis.length;i++) setStatus(i,'done'); }
-  function doneAndHide(delay=800){ clearInterval(watchdog); complete(); setTimeout(hideProgressPanel, delay); }
-  function fail(msg){ clearInterval(watchdog); setStatus(idx,'error'); if (window.Swal) Swal.fire('Error', msg||'No se pudo guardar', 'error'); }
-
+  function doneAndHide(delay=800){
+    clearInterval(watchdog);
+    for (let i=0;i<lis.length;i++) setStatus(i,'done');
+    setTimeout(hideProgressPanel, delay);
+  }
+  function fail(msg){
+    clearInterval(watchdog);
+    setStatus(idx,'error');
+    if (window.Swal) Swal.fire('Error', msg||'No se pudo guardar', 'error');
+    setTimeout(hideProgressPanel, 300);
+  }
   return { start, mark, doneAndHide, fail };
 }
 /* ========== /PROGRESO ========== */
@@ -123,13 +118,11 @@ const generarNumeroTrabajoDesdeTelefono = () => {
 /* ===== Graduaciones ===== */
 function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
 function snapToStep(n, step){ return Math.round(n / step) * step; }
-
 function sanitizeGradual(el, allowSigns = true){
   let v = el.value;
-  v = v.replace(/,/g, '');
-  v = v.replace(/[^\d+.\-]/g, '');
-  if (!allowSigns) { v = v.replace(/[+-]/g, ''); }
-  else { v = v.replace(/(?!^)[+-]/g, ''); }
+  v = v.replace(/,/g, '').replace(/[^\d+.\-]/g, '');
+  if (!allowSigns) v = v.replace(/[+-]/g, '');
+  else v = v.replace(/(?!^)[+-]/g, '');
   const parts = v.split('.');
   if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
   el.value = v;
@@ -187,7 +180,6 @@ function setupGraduaciones(){
       if (isAdd && (e.key === '+' || e.key === '-')) e.preventDefault();
     });
   });
-
   ['od_eje','oi_eje'].forEach(id=>{
     const el = $(id);
     if (!el) return;
@@ -197,7 +189,6 @@ function setupGraduaciones(){
     });
     el.addEventListener('blur',  ()=> validateEje(el));
   });
-
   ['od_cil','oi_cil'].forEach(id=>{
     const cil = $(id);
     const eje = $(id==='od_cil' ? 'od_eje' : 'oi_eje');
@@ -224,7 +215,7 @@ function setupCalculos(){
 
   function updateTotals(){
     const total = parseMoney(pc?.value) + parseMoney(pa?.value) + parseMoney(po?.value);
-    if (tot) tot.value = String(total);     // el $ lo pinta el CSS
+    if (tot) tot.value = String(total);
     const saldo = total - parseMoney(se?.value);
     if (sal) sal.value = String(saldo);
   }
@@ -251,6 +242,9 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarFechaHoy();
   setupGraduaciones();
   setupCalculos();
+
+  // Cámara / Galería (importado de fotoPack.js)
+  initPhotoPack();   // ⬅️  NUEVO: ahora sí se inicializa siempre
 
   $$("input[name='entrega']").forEach(r => r.addEventListener('change', recalcularFechaRetiro));
   const fechaEnc = $('fecha'); if(fechaEnc) fechaEnc.addEventListener('change', recalcularFechaRetiro);
@@ -300,17 +294,21 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       if(!validarEjesRequeridos()) return;
 
-      // Mostrar progreso y arrancar watchdog (si hay demoras, avanza solo)
+      // Evitar doble envío
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+
       const progress = progressAPI(PROGRESS_STEPS);
       progress.start({ fallbackMs: 12000 });
 
       try{
-        // Pasamos el objeto para que guardar.js marque pasos reales con progress.mark(...)
-        await guardarTrabajo({ progress });
+        await guardarTrabajo({ progress });   // guardar.js puede llamar progress.mark(...)
         progress.doneAndHide(800);
       }catch(err){
         console.error(err);
         progress.fail(err?.message || 'Error al guardar');
+      }finally{
+        if (submitBtn) submitBtn.disabled = false;
       }
     });
   }

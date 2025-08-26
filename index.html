@@ -9,9 +9,10 @@
   <link rel="stylesheet" href="estilos.css?v=2025-08-26" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+  <!-- Ajustes mínimos del layout (sin estilos del overlay para no chocar con estilos.css) -->
   <style>
     :root{ --gap:12px; }
-    body{ margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:#f5f7fb; color:#1f2937; }
+    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:#f5f7fb; color:#1f2937; }
     .wrap{ max-width:1200px; margin:0 auto; padding:clamp(12px,2vw,24px); display:grid; gap:var(--gap); }
     .card{ background:#fff; border-radius:18px; box-shadow:0 12px 30px rgba(0,0,0,.08); padding:clamp(12px,1.5vw,18px); }
     .grid{ display:grid; gap:var(--gap); }
@@ -20,17 +21,15 @@
     .row.cols-2{ grid-template-columns: 3fr 1fr; }
     .row.cols-3{ grid-template-columns: 1fr 1fr 1fr; }
     .row.cols-4{ grid-template-columns: repeat(4, 1fr); }
-    @media (min-width: 800px){
-      .grid.two{ grid-template-columns: 1.2fr .8fr; align-items:start; }
-    }
+    @media (min-width: 800px){ .grid.two{ grid-template-columns: 1.2fr .8fr; align-items:start; } }
     label{ font-size:13px; color:#374151; }
     input, select, textarea{ width:100%; padding:10px 12px; border:1px solid #e5e7eb; border-radius:12px; font-size:14px; background:#fff; }
     input:focus, select:focus, textarea:focus{ outline:2px solid #1b64f233; border-color:#1b64f2; }
-    h1{ font-size: clamp(18px, 2.2vw, 22px); margin:0; }
+    h1{ font-size:clamp(18px, 2.2vw, 22px); margin:0; }
     .title-row{ display:grid; grid-template-columns: 1fr auto; align-items:center; gap:var(--gap); }
     .brand{ display:flex; align-items:center; gap:10px; }
     .brand img{ width:36px; height:36px; border-radius:8px; object-fit:contain; }
-    .muted{ color:#6b7280; font-size: 12px; }
+    .muted{ color:#6b7280; font-size:12px; }
     .actions{ display:flex; gap:10px; flex-wrap:wrap; }
     button{ border:0; border-radius:12px; padding:10px 14px; background:#1b64f2; color:#fff; cursor:pointer; font-weight:600; }
     button.secondary{ background:#111827; }
@@ -42,14 +41,15 @@
     .pill{ display:inline-block; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#1b64f2; font-weight:600; }
     .inline-loader{ display:inline-flex; align-items:center; gap:8px; }
     .inline-loader[hidden]{ display:none; }
-    .spinner-screen{ position:fixed; inset:0; background:rgba(17,24,39,.6); display:none; align-items:center; justify-content:center; z-index:1000; }
-    .spinner{ width:64px; height:64px; border-radius:50%; border:6px solid #fff; border-top-color:#1b64f2; animation:spin 1s linear infinite; }
-    @keyframes spin{ to{ transform:rotate(360deg); } }
     @media print{ .no-print{ display:none !important; } }
   </style>
 </head>
 <body>
-  <div id="spinner" class="spinner-screen no-print"><div class="spinner"></div></div>
+  <!-- Overlay correcto (usa clases de estilos.css) -->
+  <div id="spinner" class="spinner no-print">
+    <div class="loader"></div>
+    <div class="spinner-text">Cargando…</div>
+  </div>
 
   <div class="wrap">
     <!-- ENCABEZADO -->
@@ -58,7 +58,7 @@
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1>Óptica Cristal v7</h1>
+            <h1>Óptica Cristal v8</h1>
             <div class="small muted"></div>
           </div>
         </div>
@@ -240,7 +240,7 @@
           </div>
         </div>
 
-        <!-- NUEVO: bloque de Foto/Galería -->
+        <!-- Fotos -->
         <div class="card grid no-print">
           <div class="actions">
             <button id="btn-foto"    type="button" class="secondary">📷 Foto</button>
@@ -249,7 +249,7 @@
           <div id="galeria-fotos" class="galeria"></div>
         </div>
 
-        <!-- Acciones (se mantienen) -->
+        <!-- Acciones -->
         <div class="card grid no-print">
           <div class="actions">
             <button id="btn-imprimir" type="button" class="ghost">Imprimir</button>
@@ -279,14 +279,12 @@
         <span>Cámara</span>
         <button id="cam-close-x" class="cam-close" type="button">Cerrar</button>
       </div>
-
       <div class="cam-body">
         <video id="cam-video" playsinline></video>
         <div id="cam-preview">
           <canvas id="cam-shot"></canvas>
         </div>
       </div>
-
       <div class="cam-actions">
         <button id="cam-tomar" type="button">Tomar foto</button>
         <button id="cam-usar"  type="button" disabled>Usar esta</button>

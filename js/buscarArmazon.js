@@ -2,65 +2,49 @@
 import { API_URL, withParams, apiGet } from './api.js';
 
 /**
- * Busca el armazón por número y completa:
- *   - Detalle del armazón
- *   - Precio del armazón
- * Muestra un SweetAlert de “Buscando…” bloqueando la pantalla.
- *
- * @param {HTMLInputElement} nInput        #numero_armazon
- * @param {HTMLInputElement} detalleInput  #armazon_detalle
- * @param {HTMLInputElement} precioInput   #precio_armazon
+ * Busca el armazón y completa detalle + precio.
+ * Acepta códigos alfanuméricos (RB1130, VO979, etc.).
  */
 export async function buscarArmazonPorNumero(nInput, detalleInput, precioInput) {
-  const num = String(nInput?.value || '').replace(/\D+/g, '');
-  if (!num) {
+  // NO borremos letras: normalizamos (sin espacios, mayúsculas)
+  const raw  = String(nInput?.value || '').trim();
+  const code = raw.toUpperCase().replace(/\s+/g, '');
+
+  if (!code) {
     if (detalleInput) detalleInput.value = '';
     if (precioInput)  precioInput.value  = '';
-    return null;
-  }
-
-  // Loader bloqueante
-  if (window.Swal) {
-    Swal.fire({
-      title: 'Buscando armazón…',
-      text: `Nº ${num}`,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => Swal.showLoading(),
-      backdrop: true,
-    });
+    return;
   }
 
   try {
-    const url  = withParams(API_URL, { buscarArmazon: num });
-    const data = await apiGet(url);
-
-    // Intentamos varias llaves posibles para el detalle
-    const detalle =
-      (data?.modelo ?? data?.detalle ?? data?.descripcion ?? data?.marca ?? data?.nombre ?? '')
-        .toString()
-        .trim();
-
-    // Precio como texto limpio; puede llegar number o string
-    let precio = (data?.precio ?? '').toString().trim();
-
-    if (detalleInput) detalleInput.value = detalle;
-    if (precioInput) {
-      precioInput.value = precio;
-      // Disparamos blur para que el formateo de moneda en main.js agregue "$ "
-      precioInput.dispatchEvent(new Event('blur', { bubbles: true }));
+    if (window.Swal) {
+      Swal.fire({
+        title: 'Buscando armazón…',
+        text: `Código: ${code}`,
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
     }
 
-    return data;
+    // enviamos tal cual (ej: RB1130). El Apps Script lo recibirá como string.
+    const url  = withParams(API_URL, { buscarArmazon: code });
+    const data = await apiGet(url);
+
+    // Completar lo que usás
+    const detalle = (data?.modelo || data?.detalle || data?.armazon || '').toString().trim();
+    const precio  = (data?.precio || '').toString().trim();
+
+    if (detalleInput) detalleInput.value = detalle;
+    if (precioInput)  precioInput.value  = precio;
+
+    if (window.Swal) Swal.close();
   } catch (err) {
     console.error('buscarArmazonPorNumero:', err);
+    if (window.Swal) Swal.close();
     if (detalleInput) detalleInput.value = '';
     if (precioInput)  precioInput.value  = '';
     if (window.Swal) {
-      Swal.fire('No encontrado', `No se encontró el armazón Nº ${num}.`, 'warning');
+      Swal.fire('No encontrado', `No se encontró el armazón "${code}".`, 'warning');
     }
-    return null;
-  } finally {
-    if (window.Swal) Swal.close();
   }
 }

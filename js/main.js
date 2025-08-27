@@ -203,22 +203,60 @@ function validarEjesRequeridos(){
 
 // --- selects (nuevo)
 function setupGraduacionesSelects() {
+  const isSel = (el) => el && el.tagName === 'SELECT';
+
   const addOpt = (sel, val, label) => {
     const o = document.createElement('option');
     o.value = val;
     o.textContent = label ?? val;
     sel.appendChild(o);
   };
-  const fill = (sel, from, to, step, showSign = false) => {
-    if (!sel || !isSelect(sel)) return;
-    sel.innerHTML = '';
-    addOpt(sel, '', ''); // placeholder vacío
-    for (let v = from; (step > 0 ? v <= to : v >= to); v = Math.round((v + step) * 100) / 100) {
-      let txt = Math.abs(v) < 1e-9 ? '0.00' : v.toFixed(2);
-      if (showSign && v > 0) txt = '+' + txt;
-      addOpt(sel, txt, txt);
-    }
+
+  const fmt = (v, showSign) => {
+    let txt = Math.abs(v) < 1e-9 ? '0.00' : v.toFixed(2);
+    if (showSign && v > 0) txt = '+' + txt;  // 0 no lleva signo
+    return txt;
   };
+
+  // Rellena con "cero primero" y deja seleccionado 0.00
+  const fillZeroFirst = (sel, from, to, step, showSign = false) => {
+    if (!isSel(sel)) return;
+    sel.innerHTML = '';                       // SIN placeholder
+
+    const stepAbs = Math.abs(step);
+    const upper   = Math.max(from, to);
+    const lower   = Math.min(from, to);
+
+    // 0, luego positivos, luego negativos
+    addOpt(sel, '0.00', '0.00');
+    for (let v = 0 + stepAbs; v <= upper + 1e-9; v += stepAbs) {
+      const val = +v.toFixed(2);
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));
+    }
+    for (let v = -stepAbs; v >= lower - 1e-9; v -= stepAbs) {
+      const val = +v.toFixed(2);
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));
+    }
+
+    sel.value = '0.00';                       // queda seleccionado en 0
+  };
+
+  // ESF: -30 → +20, paso 0.25, con signo en positivos
+  fillZeroFirst(document.getElementById('od_esf'), -30, 20, 0.25, true);
+  fillZeroFirst(document.getElementById('oi_esf'), -30, 20, 0.25, true);
+
+  // CIL: 0 → -8, paso -0.25 (cero primero por definición)
+  fillZeroFirst(document.getElementById('od_cil'), 0, -8, -0.25, false);
+  fillZeroFirst(document.getElementById('oi_cil'), 0, -8, -0.25, false);
+
+  // Si cambia CIL, validamos si EJE es requerido
+  [['od_cil','od_eje'], ['oi_cil','oi_eje']].forEach(([cilId, ejeId]) => {
+    const cil = document.getElementById(cilId);
+    const eje = document.getElementById(ejeId);
+    if (cil && eje) cil.addEventListener('change', () => checkEjeRequerido(cil, eje));
+  });
+}
+
 
   // ESF: -30 → +20 (0.25)
   fill($('od_esf'), -30, 20, 0.25, true);

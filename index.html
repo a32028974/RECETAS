@@ -4,73 +4,43 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Óptica Cristal • Carga de trabajos</title>
+
   <meta name="theme-color" content="#111827" />
   <link rel="icon" type="image/png" href="logo.png" />
-  <link rel="stylesheet" href="estilos.css?v=2025-08-26" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="estilos.css?v=1" />
 
-  <!-- Ajustes mínimos del layout (sin estilos del overlay para no chocar con estilos.css) -->
-  <style>
-    :root{ --gap:12px; }
-    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:#f5f7fb; color:#1f2937; }
-    .wrap{ max-width:1200px; margin:0 auto; padding:clamp(12px,2vw,24px); display:grid; gap:var(--gap); }
-    .card{ background:#fff; border-radius:18px; box-shadow:0 12px 30px rgba(0,0,0,.08); padding:clamp(12px,1.5vw,18px); }
-    .grid{ display:grid; gap:var(--gap); }
-    .grid.two{ grid-template-columns: 1fr; }
-    .row{ display:grid; gap:var(--gap); }
-    .row.cols-2{ grid-template-columns: 3fr 1fr; }
-    .row.cols-3{ grid-template-columns: 1fr 1fr 1fr; }
-    .row.cols-4{ grid-template-columns: repeat(4, 1fr); }
-    @media (min-width: 800px){ .grid.two{ grid-template-columns: 1.2fr .8fr; align-items:start; } }
-    label{ font-size:13px; color:#374151; }
-    input, select, textarea{ width:100%; padding:10px 12px; border:1px solid #e5e7eb; border-radius:12px; font-size:14px; background:#fff; }
-    input:focus, select:focus, textarea:focus{ outline:2px solid #1b64f233; border-color:#1b64f2; }
-    h1{ font-size:clamp(18px, 2.2vw, 22px); margin:0; }
-    .title-row{ display:grid; grid-template-columns: 1fr auto; align-items:center; gap:var(--gap); }
-    .brand{ display:flex; align-items:center; gap:10px; }
-    .brand img{ width:36px; height:36px; border-radius:8px; object-fit:contain; }
-    .muted{ color:#6b7280; font-size:12px; }
-    .actions{ display:flex; gap:10px; flex-wrap:wrap; }
-    button{ border:0; border-radius:12px; padding:10px 14px; background:#1b64f2; color:#fff; cursor:pointer; font-weight:600; }
-    button.secondary{ background:#111827; }
-    button.ghost{ background:#eef2ff; color:#1b64f2; }
-    .seg{ display:flex; gap:8px; }
-    .seg label{ display:flex; align-items:center; gap:6px; background:#f3f4f6; padding:8px 10px; border-radius:10px; cursor:pointer; }
-    .seg input{ width:auto; }
-    .small{ font-size:12px; }
-    .pill{ display:inline-block; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#1b64f2; font-weight:600; }
-    .inline-loader{ display:inline-flex; align-items:center; gap:8px; }
-    .inline-loader[hidden]{ display:none; }
-    @media print{ .no-print{ display:none !important; } }
-  </style>
+  <!-- Notificaciones -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-  <!-- Overlay correcto (usa clases de estilos.css) -->
-  <div id="spinner" class="spinner no-print">
+  <!-- Overlay de carga (clases definidas en estilos.css) -->
+  <div id="spinner" class="spinner no-print" aria-hidden="true" hidden>
     <div class="loader"></div>
     <div class="spinner-text">Cargando…</div>
   </div>
 
   <div class="wrap">
-    <!-- ENCABEZADO -->
-    <div class="card">
+    <!-- Encabezado -->
+    <header class="card">
       <div class="title-row">
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1>Óptica Cristal v8</h1>
-            <div class="small muted"></div>
+            <h1>Óptica Cristal v11</h1>
+            <p class="muted small">San Miguel • Argentina</p>
           </div>
         </div>
-        <div class="row" style="grid-template-columns:minmax(180px, 260px);">
+        <div class="row" style="grid-template-columns:minmax(200px, 280px);">
           <div>
             <label for="numero_trabajo">Número de trabajo</label>
-            <input id="numero_trabajo" name="numero_trabajo" inputmode="numeric" autocomplete="off" placeholder="" />
+            <input id="numero_trabajo" name="numero_trabajo" inputmode="numeric" autocomplete="off" />
           </div>
         </div>
       </div>
-    </div>
+    </header>
 
+    <!-- Formulario principal -->
     <form id="formulario" class="grid two" autocomplete="off">
       <!-- Columna izquierda -->
       <section class="card grid" aria-label="Datos del trabajo">
@@ -79,14 +49,16 @@
             <label for="fecha">Fecha que encarga</label>
             <input id="fecha" name="fecha" placeholder="dd/mm/aa" />
           </div>
+
           <div>
             <label class="small">Modalidad de entrega</label>
             <div class="seg" role="radiogroup" aria-label="Entrega">
               <label><input type="radio" name="entrega" value="7" checked /> Stock (7 días)</label>
-              <label><input type="radio" name="entrega" value="3" /> Urg (3 días)</label>
-              <label><input type="radio" name="entrega" value="15" /> Lab (15 días)</label>
+              <label><input type="radio" name="entrega" value="3" /> Urgente (3 días)</label>
+              <label><input type="radio" name="entrega" value="15" /> Laboratorio (15 días)</label>
             </div>
           </div>
+
           <div>
             <label for="fecha_retira">Fecha que retira (estimada)</label>
             <input id="fecha_retira" name="fecha_retira" type="date" />
@@ -96,18 +68,18 @@
         <div class="row cols-3">
           <div>
             <label for="dni">DNI</label>
-            <input id="dni" name="dni" inputmode="numeric" placeholder="">
+            <input id="dni" name="dni" inputmode="numeric" />
             <div id="dni-loading" class="inline-loader" hidden>
               <span class="pill">Buscando…</span>
             </div>
           </div>
           <div>
             <label for="nombre">Apellido y nombre</label>
-            <input id="nombre" name="nombre" placeholder="Apellido primero">
+            <input id="nombre" name="nombre" placeholder="Apellido primero" />
           </div>
           <div>
             <label for="telefono">Teléfono</label>
-            <input id="telefono" name="telefono" autocomplete="tel" placeholder="">
+            <input id="telefono" name="telefono" autocomplete="tel" placeholder="11 2345 6789" />
           </div>
         </div>
 
@@ -126,19 +98,15 @@
         <div class="row cols-4">
           <div>
             <label for="od_esf">OD ESF</label>
-            <input id="od_esf" name="od_esf" class="grad grad-esf" type="text" inputmode="numeric"
-                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?" placeholder="+2.50 / -1.75"
-                   data-min="-30" data-max="20" data-step="0.25" />
+            <select id="od_esf" name="od_esf"></select>
           </div>
           <div>
             <label for="od_cil">OD CIL</label>
-            <input id="od_cil" name="od_cil" class="grad grad-cil" type="text" inputmode="numeric"
-                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?" placeholder="-0.75"
-                   data-min="-7" data-max="7" data-step="0.25" />
+            <select id="od_cil" name="od_cil"></select>
           </div>
           <div>
             <label for="od_eje">OD EJE (0–180)</label>
-            <input id="od_eje" name="od_eje" type="text" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="EJE" />
+            <input id="od_eje" name="od_eje" inputmode="numeric" placeholder="EJE" />
           </div>
         </div>
 
@@ -146,35 +114,30 @@
         <div class="row cols-4">
           <div>
             <label for="oi_esf">OI ESF</label>
-            <input id="oi_esf" name="oi_esf" class="grad grad-esf" type="text" inputmode="numeric"
-                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?" placeholder="+2.50 / -1.75"
-                   data-min="-30" data-max="20" data-step="0.25" />
+            <select id="oi_esf" name="oi_esf"></select>
           </div>
           <div>
             <label for="oi_cil">OI CIL</label>
-            <input id="oi_cil" name="oi_cil" class="grad grad-cil" type="text" inputmode="numeric"
-                   pattern="[+-]?[0-9]+(?:\.[0-9]{1,2})?" placeholder="-0.75"
-                   data-min="-7" data-max="7" data-step="0.25" />
+            <select id="oi_cil" name="oi_cil"></select>
           </div>
           <div>
             <label for="oi_eje">OI EJE (0–180)</label>
-            <input id="oi_eje" name="oi_eje" type="text" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="EJE" />
+            <input id="oi_eje" name="oi_eje" inputmode="numeric" placeholder="EJE" />
           </div>
         </div>
 
         <div class="row cols-3">
           <div>
-            <label for="dr">Dr.</label>
-            <input id="dr" name="dr" placeholder="Jimena/Oftalm" />
+            <label for="dr">Dr. (oculista)</label>
+            <input id="dr" name="dr" placeholder="Opcional" />
           </div>
           <div>
             <label for="dnp">DNP (OD/OI)</label>
-            <input id="dnp" name="dnp" placeholder="30/30" />
+            <input id="dnp" name="dnp" placeholder="12/34" />
           </div>
           <div>
             <label for="add">ADD</label>
-            <input id="add" name="add" class="grad grad-add" type="text" inputmode="numeric"
-                   pattern="[0-9]+(?:\.[0-9]{1,2})?" placeholder="0.00" data-min="0" data-max="5" data-step="0.25" />
+            <input id="add" name="add" class="grad grad-add" inputmode="numeric" placeholder="0.00" />
           </div>
         </div>
 
@@ -203,13 +166,13 @@
 
       <!-- Columna derecha -->
       <aside class="grid" aria-label="Armazón y totales">
-        <div class="card grid">
+        <section class="card grid">
           <div class="row cols-3">
             <div>
               <label for="numero_armazon">Nº armazón</label>
-              <input id="numero_armazon" name="numero_armazon" type="text" inputmode="text"
-                     autocapitalize="characters" autocorrect="off" spellcheck="false" autocomplete="off"
-                     maxlength="12" pattern="^[A-Za-z0-9-]+$" placeholder="Ej: 13336 o RB1130"/>
+              <input id="numero_armazon" name="numero_armazon" inputmode="text"
+                     autocapitalize="characters" autocorrect="off" spellcheck="false"
+                     maxlength="12" placeholder="Ej: 13336" />
               <div id="armazon-loading" class="inline-loader" hidden>
                 <span class="pill">Buscando…</span>
               </div>
@@ -238,28 +201,28 @@
               <div class="money"><input id="saldo" name="saldo" inputmode="numeric" readonly /></div>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Fotos -->
-        <div class="card grid no-print">
+        <section class="card grid no-print">
           <div class="actions">
             <button id="btn-foto"    type="button" class="secondary">📷 Foto</button>
             <button id="btn-galeria" type="button" class="secondary">🖼️ Galería</button>
           </div>
           <div id="galeria-fotos" class="galeria"></div>
-        </div>
+        </section>
 
         <!-- Acciones -->
-        <div class="card grid no-print">
+        <section class="card grid no-print">
           <div class="actions">
             <button id="btn-imprimir" type="button" class="ghost">Imprimir</button>
-            <button id="btn-limpiar"   type="button" class="secondary">Limpiar</button>
+            <button id="btn-limpiar"  type="button" class="secondary">Limpiar</button>
             <button type="submit">Guardar</button>
           </div>
-        </div>
+        </section>
 
-        <!-- Historial -->
-        <div class="card">
+        <!-- Historial (opcional; tu js/historial lo usa si está presente) -->
+        <section class="card">
           <h3 style="margin:0 0 8px 0; font-size:16px;">Historial</h3>
           <div class="row cols-3">
             <input id="hist-q" placeholder="Buscar: nombre, DNI, tel o @123 (exacto)" />
@@ -267,12 +230,12 @@
             <button id="hist-buscar" type="button">Buscar</button>
           </div>
           <div id="historial" class="small muted" style="margin-top:8px;"></div>
-        </div>
+        </section>
       </aside>
     </form>
   </div>
 
-  <!-- Modal de cámara -->
+  <!-- Modal de cámara (lo maneja fotoPack.js si lo usás) -->
   <div id="cam-modal" class="cam-modal" hidden>
     <div class="cam-dialog">
       <div class="cam-head">
@@ -281,23 +244,17 @@
       </div>
       <div class="cam-body">
         <video id="cam-video" playsinline></video>
-        <div id="cam-preview">
-          <canvas id="cam-shot"></canvas>
-        </div>
+        <div id="cam-preview"><canvas id="cam-shot"></canvas></div>
       </div>
       <div class="cam-actions">
-        <button id="cam-tomar" type="button">Tomar foto</button>
-        <button id="cam-usar"  type="button" disabled>Usar esta</button>
+        <button id="cam-tomar"   type="button">Tomar foto</button>
+        <button id="cam-usar"    type="button" disabled>Usar esta</button>
         <button id="cam-cancelar" type="button">Cancelar</button>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script type="module" src="./js/main.js"></script>
-  <script type="module">
-    import { initPhotoPack } from './js/fotoPack.js';
-    initPhotoPack();
-  </script>
+  <!-- JS: un solo módulo que orquesta todo -->
+  <script type="module" src="./js/main.js?v=11"></script>
 </body>
 </html>

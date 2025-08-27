@@ -220,9 +220,9 @@ function setupGraduacionesSelects() {
     }
   };
 
-  // ESF: -20 → +20 (0.25)
-  fill($('od_esf'), -20, 20, 0.25, true);
-  fill($('oi_esf'), -20, 20, 0.25, true);
+  // ESF: -30 → +20 (0.25)
+  fill($('od_esf'), -30, 20, 0.25, true);
+  fill($('oi_esf'), -30, 20, 0.25, true);
 
   // CIL: 0 → -8 (-0.25) – común en práctica
   fill($('od_cil'), 0, -8, -0.25, false);

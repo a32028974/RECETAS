@@ -205,3 +205,36 @@ button.ghost{ background:#eef2ff; color:var(--brand); }
   .print-area{ display:block !important; }
   input,select,textarea,button{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 }
+/* ===== Ajuste: "Modalidad de entrega" centrado entre fechas ===== */
+/* Toma la primera fila de 3 columnas del bloque "Datos del trabajo" */
+section[aria-label="Datos del trabajo"] .row.cols-3:first-child{
+  /* fechas a los costados, la modalidad se achica al centro */
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;              /* alinea con la línea de los inputs */
+  column-gap: 12px;
+}
+
+/* El contenedor de chips no se parte en varias filas (salvo en móvil chico) */
+section[aria-label="Datos del trabajo"] .row.cols-3:first-child .seg{
+  display: flex;
+  gap: 10px;
+  flex-wrap: nowrap;             /* una sola fila */
+}
+
+/* Cada chip ocupa sólo lo que necesita, no se estira a todo el ancho */
+section[aria-label="Datos del trabajo"] .row.cols-3:first-child .seg label{
+  flex: 0 0 auto;                /* no crecer/encoger */
+  white-space: nowrap;           /* que no corte en 2 líneas */
+  padding: 10px 12px;            /* un toque más compacto */
+}
+
+/* En pantallas muy angostas, apilar en 3 filas para no desbordar */
+@media (max-width: 680px){
+  section[aria-label="Datos del trabajo"] .row.cols-3:first-child{
+    grid-template-columns: 1fr;  /* la fecha–entrega–fecha se apilan */
+  }
+  section[aria-label="Datos del trabajo"] .row.cols-3:first-child .seg{
+    flex-wrap: wrap;             /* que puedan caer a 2-3 líneas si hace falta */
+    gap: 8px;
+  }
+}

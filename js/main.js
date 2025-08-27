@@ -1,4 +1,7 @@
-// /RECETAS/js/main.js — versión con PROGRESO + cámara inicializada
+// /RECETAS/js/main.js — v2025-08-27
+// UI general + progreso + cámara + búsquedas + totales + graduaciones (SELECT o INPUT)
+
+// ===== Imports =====
 import { obtenerNumeroTrabajoDesdeTelefono } from './numeroTrabajo.js';
 import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
@@ -6,10 +9,14 @@ import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
 import { initPhotoPack } from './fotoPack.js';
 
+// ===== Helpers DOM =====
 const $  = (id)  => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+const isSelect = (el) => el && el.tagName === 'SELECT';
 
-/* ========== PROGRESO ========== */
+// =========================================================================
+// PROGRESO (overlay)
+// =========================================================================
 const PROGRESS_STEPS = [
   'Validando datos',
   'Guardando en planilla',
@@ -20,7 +27,6 @@ const PROGRESS_STEPS = [
   'Listo'
 ];
 
-// Garantiza que el overlay tenga la clase correcta y existe
 function getOverlayHost() {
   let host = $('spinner');
   if (!host) {
@@ -28,14 +34,13 @@ function getOverlayHost() {
     host.id = 'spinner';
     document.body.appendChild(host);
   }
-  host.classList.add('spinner');            // usa tu CSS .spinner
-  host.classList.remove('spinner-screen');  // por si quedó viejo
+  host.classList.add('spinner');      // coincide con estilos.css
+  host.classList.remove('spinner-screen'); // limpieza de versiones viejas
   return host;
 }
 
 function createProgressPanel(steps = PROGRESS_STEPS) {
   const host = getOverlayHost();
-  // guardo el HTML anterior para restaurar igualito
   if (!host.dataset.prevHTML) host.dataset.prevHTML = host.innerHTML;
   host.style.display = 'flex';
   host.innerHTML = `
@@ -54,7 +59,6 @@ function createProgressPanel(steps = PROGRESS_STEPS) {
 function hideProgressPanel() {
   const host = getOverlayHost();
   host.style.display = 'none';
-  // restaurar el HTML anterior (loader + texto)
   if (host.dataset.prevHTML !== undefined) {
     host.innerHTML = host.dataset.prevHTML;
     delete host.dataset.prevHTML;
@@ -99,13 +103,14 @@ function progressAPI(steps = PROGRESS_STEPS) {
 
   return { next, mark, autoAdvance, complete, fail, doneAndHide };
 }
-/* ========== /PROGRESO ========== */
 
-// (quedan por compatibilidad; otras partes podrían llamarlos)
+// accesos legacy
 function lockForm(){ const sp = getOverlayHost(); sp.style.display = 'flex'; }
 function unlockForm(){ const sp = getOverlayHost(); sp.style.display = 'none'; }
 
-/* ===== Fechas ===== */
+// =========================================================================
+// Fechas
+// =========================================================================
 function parseFechaDDMMYY(str){
   if(!str) return new Date();
   const [d,m,a] = str.split('/');
@@ -126,22 +131,27 @@ function recalcularFechaRetiro(){
   out.value = fmtISO(sumarDias(base, dias));
 }
 
-/* ===== Nº de trabajo desde teléfono ===== */
+// =========================================================================
+/* Nº de trabajo desde teléfono */
+// =========================================================================
 const generarNumeroTrabajoDesdeTelefono = () => {
   const tel = $('telefono'), out = $('numero_trabajo');
   if (!tel || !out) return;
   out.value = obtenerNumeroTrabajoDesdeTelefono(tel.value);
 };
 
-/* ===== Graduaciones ===== */
+// =========================================================================
+// Graduaciones (EJE + inputs y/o selects para ESF/CIL)
+// =========================================================================
 function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
 function snapToStep(n, step){ return Math.round(n / step) * step; }
+
+// --- inputs de texto (compat)
 function sanitizeGradual(el, allowSigns = true){
   let v = el.value;
-  v = v.replace(/,/g, '');
-  v = v.replace(/[^\d+.\-]/g, '');
-  if (!allowSigns) { v = v.replace(/[+-]/g, ''); }
-  else { v = v.replace(/(?!^)[+-]/g, ''); }
+  v = v.replace(/,/g, '').replace(/[^\d+.\-]/g, '');
+  if (!allowSigns) v = v.replace(/[+-]/g, '');
+  else v = v.replace(/(?!^)[+-]/g, '');
   const parts = v.split('.');
   if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
   el.value = v;
@@ -150,14 +160,14 @@ function validateGradual(el){
   const min  = parseFloat(el.dataset.min);
   const max  = parseFloat(el.dataset.max);
   const step = parseFloat(el.dataset.step);
-  let v = el.value.trim();
-  if (!v) return;
+  let v = el.value.trim(); if (!v) return;
   v = v.replace(/,/g, '.');
   const num = parseFloat(v);
   if (isNaN(num)) { el.value = ''; return; }
   let val = clamp(snapToStep(num, step), min, max);
   el.value = val.toFixed(2);
 }
+
 function sanitizeEje(el){ el.value = el.value.replace(/\D/g, '').slice(0,3); }
 function validateEje(el){
   if (!el.value) return;
@@ -168,7 +178,8 @@ function validateEje(el){
 }
 function styleEje(inp, ok){ if(!inp) return; inp.style.borderColor = ok? '#e5e7eb' : '#ef4444'; }
 function checkEjeRequerido(cilEl, ejeEl){
-  const cil = parseFloat((cilEl?.value || '').replace(',', '.'));
+  const raw = (cilEl?.value ?? '').toString().replace(',', '.');
+  const cil = raw === '' ? NaN : parseFloat(raw);
   const eje = parseInt(ejeEl?.value || '', 10);
   const requerido = !isNaN(cil) && cil !== 0;
   let ok = true;
@@ -189,7 +200,43 @@ function validarEjesRequeridos(){
   }
   return ok1 && ok2;
 }
-function setupGraduaciones(){
+
+// --- selects (nuevo)
+function setupGraduacionesSelects() {
+  const addOpt = (sel, val, label) => {
+    const o = document.createElement('option');
+    o.value = val;
+    o.textContent = label ?? val;
+    sel.appendChild(o);
+  };
+  const fill = (sel, from, to, step, showSign = false) => {
+    if (!sel || !isSelect(sel)) return;
+    sel.innerHTML = '';
+    addOpt(sel, '', ''); // placeholder vacío
+    for (let v = from; (step > 0 ? v <= to : v >= to); v = Math.round((v + step) * 100) / 100) {
+      let txt = Math.abs(v) < 1e-9 ? '0.00' : v.toFixed(2);
+      if (showSign && v > 0) txt = '+' + txt;
+      addOpt(sel, txt, txt);
+    }
+  };
+
+  // ESF: -20 → +20 (0.25)
+  fill($('od_esf'), -20, 20, 0.25, true);
+  fill($('oi_esf'), -20, 20, 0.25, true);
+
+  // CIL: 0 → -8 (-0.25) – común en práctica
+  fill($('od_cil'), 0, -8, -0.25, false);
+  fill($('oi_cil'), 0, -8, -0.25, false);
+
+  // al cambiar CIL, validar si EJE es requerido
+  [['od_cil','od_eje'], ['oi_cil','oi_eje']].forEach(([cilId, ejeId]) => {
+    const cil = $(cilId), eje = $(ejeId);
+    if (cil && eje) cil.addEventListener('change', () => checkEjeRequerido(cil, eje));
+  });
+}
+
+// --- inputs tipo "grad" (compat con versiones viejas de index)
+function setupGraduacionesInputs(){
   document.querySelectorAll('input.grad').forEach(el=>{
     const isAdd = el.classList.contains('grad-add');
     el.addEventListener('input', ()=> sanitizeGradual(el, !isAdd));
@@ -218,7 +265,9 @@ function setupGraduaciones(){
   });
 }
 
-/* ===== Dinero ===== */
+// =========================================================================
+// Dinero / Totales
+// =========================================================================
 function parseMoney(v){
   const n = parseFloat(String(v).replace(/[^\d.-]/g, ''));
   return isNaN(n) ? 0 : n;
@@ -247,30 +296,39 @@ function setupCalculos(){
   updateTotals();
 }
 
-/* ===== Impresión / Limpieza ===== */
+// =========================================================================
+// Impresión / Limpieza
+// =========================================================================
 function buildPrintArea(){ try{ (window.__buildPrintArea||(()=>{}))(); }catch{} setTimeout(()=>window.print(),0); }
 function limpiarFormulario(){
   const form=$('formulario'); if(!form) return;
   form.reset(); cargarFechaHoy();
   const gal=$('galeria-fotos'); if(gal) gal.innerHTML='';
-  // borro memoria de fotos si existe
   if (Array.isArray(window.__FOTOS)) window.__FOTOS.length = 0;
   recalcularFechaRetiro();
 }
 
-/* ===== INIT ===== */
+// =========================================================================
+// INIT
+// =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   // Cámara + Galería
   initPhotoPack();
 
+  // Fecha hoy y cálculo de retiro
   cargarFechaHoy();
-  setupGraduaciones();
-  setupCalculos();
-
   $$("input[name='entrega']").forEach(r => r.addEventListener('change', recalcularFechaRetiro));
   const fechaEnc = $('fecha'); if(fechaEnc) fechaEnc.addEventListener('change', recalcularFechaRetiro);
   recalcularFechaRetiro();
 
+  // Graduaciones (primero SELECTs si existen, y además soporte para inputs .grad)
+  setupGraduacionesSelects();
+  setupGraduacionesInputs();
+
+  // Totales
+  setupCalculos();
+
+  // Teléfono → Nº de trabajo
   const tel = $('telefono');
   if(tel){
     tel.addEventListener('blur', generarNumeroTrabajoDesdeTelefono);
@@ -278,6 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tel.addEventListener('input', ()=>{ tel.value = tel.value.replace(/[^0-9 +()-]/g,''); });
   }
 
+  // DNI → buscar nombre/teléfono
   const dni=$('dni'), nombre=$('nombre'), telefono=$('telefono'), indi=$('dni-loading');
   if(dni){
     const doDNI = () => buscarNombrePorDNI(dni, nombre, telefono, indi);
@@ -286,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dni.addEventListener('input', ()=>{ dni.value = dni.value.replace(/\D/g,''); });
   }
 
-  // Nº armazón alfanumérico
+  // Nº armazón → buscar detalle/precio (admite alfanumérico con guión)
   const nAr=$('numero_armazon'), detAr=$('armazon_detalle'), prAr=$('precio_armazon');
   if(nAr){
     const doAr = () => buscarArmazonPorNumero(nAr, detAr, prAr);
@@ -300,27 +359,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // DNP 12/34
   const dnp=$('dnp');
   if(dnp){
     const fmt=(v)=> v.replace(/\D/g,'').slice(0,4).replace(/^(\d{0,2})(\d{0,2}).*$/,(_,a,b)=> b?`${a}/${b}`:a);
     dnp.addEventListener('input', ()=> dnp.value = fmt(dnp.value));
   }
 
+  // Botones
   const btnImp=$('btn-imprimir'); if(btnImp) btnImp.addEventListener('click', buildPrintArea);
   const btnClr=$('btn-limpiar'); if(btnClr) btnClr.addEventListener('click', limpiarFormulario);
 
+  // Guardar
   const form=$('formulario');
   if(form){
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
       if(!validarEjesRequeridos()) return;
 
-      // PROGRESO (auto avanza para que veas “ticks” mientras espera)
       const progress = progressAPI(PROGRESS_STEPS);
       progress.autoAdvance(6000);
 
       try{
-        await guardarTrabajo({ progress }); // si tu guardar.js ignora el arg, no pasa nada
+        await guardarTrabajo({ progress }); // si guardar.js no usa progress, no pasa nada
         progress.doneAndHide(800);
       } catch (err){
         console.error(err);

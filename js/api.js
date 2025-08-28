@@ -3,7 +3,7 @@
 export const API_URL  = "https://script.google.com/macros/s/AKfycbxYBkZ6DVXzxMIhGaJv-7qsdjx_PccL4aKICU1zNbU-aK7OUGY9zNdJtJ1Yq4as5RwzDA/exec";
 
 // 2) ENDPOINT DE PACK/TELEGRAM (el tuyo que ya funcionaba)
-export const PACK_URL = "https://script.google.com/macros/s/AKfycb4yAcS1qga-xnN3319jcVvANwZ7N1MN-Lht13Wi8TiPBTEMAy_2KpcG2Ih0qQZFPIF0lNSA/exec";
+export const PACK_URL = "https://script.google.com/macros/s/AKfycbyAc51qga-xnN3319jcVmAWwz7NTlNH-Lht3IwRIt8PT0MAy_ZKpcGJiohQZIFPfIONsA/exec";
 
 // Helpers comunes
 export function withParams(base, params = {}) {

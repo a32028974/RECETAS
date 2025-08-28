@@ -259,3 +259,29 @@ input[type="date"]::-webkit-calendar-picker-indicator{
     grid-template-columns: 1fr 0.9fr 1fr;
   }
 }
+
+/* Historial de ancho completo solo en desktop y con un margen superior extra */
+@media (min-width: 880px){
+  .full-row{ grid-column: 1 / -1; margin-top: 12px; }
+}
+
+/* Tabla visual del historial */
+.hist-table{ font-size:14px; display:grid; gap:6px; }
+.hist-row{
+  display:grid;
+  grid-template-columns: 120px 1.2fr 1fr 1fr 150px 120px;
+  align-items:center; gap:8px;
+  border:1px solid var(--line); border-radius:10px; padding:6px 8px; background:#fff;
+}
+.hist-row .num{ font-weight:800; }
+.hist-row .wa a{ text-decoration:none; }
+.hist-head{
+  font-weight:700; color:#374151; background:#f3f4f6; border-color:#e5e7eb;
+}
+@media (max-width: 879px){
+  /* En pantallas chicas lo mostramos en una sola columna (stack) */
+  .hist-row{
+    grid-template-columns: 1fr;
+  }
+}
+

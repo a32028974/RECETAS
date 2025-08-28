@@ -27,15 +27,16 @@
         <div class="brand">
           <img src="logo.png" alt="Óptica Cristal" />
           <div>
-            <h1>Óptica Cristal v15</h1>
+            <h1>Óptica Cristal v16</h1>
             <p class="muted small">San Miguel • Argentina</p>
           </div>
         </div>
         <div class="row" style="grid-template-columns:minmax(200px, 280px);">
           <div>
             <label for="numero_trabajo">Número de trabajo</label>
-            <!-- Campo visible (fuera del form por layout) -->
-            <input id="numero_trabajo" name="numero_trabajo_visible" inputmode="numeric" autocomplete="off" />
+            <!-- Campo visible en el header PERO enviado con el form gracias a form="formulario" -->
+            <input id="numero_trabajo" name="numero_trabajo" form="formulario"
+                   inputmode="numeric" autocomplete="off" />
           </div>
         </div>
       </div>
@@ -43,10 +44,7 @@
 
     <!-- Formulario principal -->
     <form id="formulario" class="grid two" autocomplete="off">
-      <!-- 🔒 HIDDEN necesarios para el envío -->
-      <!-- 1) El número de trabajo que está visible en el header -->
-      <input type="hidden" id="numero_trabajo_hidden" name="numero_trabajo" />
-      <!-- 2) Link del PDF (lo completa guardar.js después) -->
+      <!-- HIDDEN para link del PDF (lo completa guardar.js) -->
       <input type="hidden" id="pack_url" name="pdf" />
 
       <!-- Columna izquierda -->
@@ -227,18 +225,18 @@
             <button type="submit">Guardar</button>
           </div>
         </section>
-
-        <!-- Historial -->
-        <section class="card">
-          <h3 style="margin:0 0 8px 0; font-size:16px;">Historial</h3>
-          <div class="row cols-3">
-            <input id="hist-q" placeholder="Buscar: nombre, DNI, tel o @123 (exacto)" />
-            <input id="hist-limit" type="number" min="1" max="500" value="100" />
-            <button id="hist-buscar" type="button">Buscar</button>
-          </div>
-          <div id="historial" class="small muted" style="margin-top:8px;"></div>
-        </section>
       </aside>
+
+      <!-- Historial: lo movemos a ANCHO COMPLETO debajo del formulario -->
+      <section class="card" id="hist-card" style="grid-column:1 / -1; margin-top:12px;">
+        <h3 style="margin:0 0 8px 0; font-size:16px;">Historial</h3>
+        <div class="row cols-3">
+          <input id="hist-q" placeholder="Buscar: nombre, DNI, tel o @123 (exacto)" />
+          <input id="hist-limit" type="number" min="1" max="500" value="100" />
+          <button id="hist-buscar" type="button">Buscar</button>
+        </div>
+        <div id="historial" class="small muted" style="margin-top:8px;"></div>
+      </section>
     </form>
   </div>
 

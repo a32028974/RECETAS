@@ -2,6 +2,24 @@
 import { API_URL, withParams, apiGet } from './api.js';
 
 /**
+ * Arma un detalle legible combinando columnas disponibles:
+ * MARCA + MODELO + ARMAZON + COLOR. Si no hay nada, usa 'detalle' del backend.
+ */
+function buildDetalle(item) {
+  const partes = [
+    (item.marca  || '').toString().trim(),
+    (item.modelo || '').toString().trim(),
+    (item.armazon|| '').toString().trim(),
+    (item.color  || '').toString().trim(),
+  ].filter(Boolean);
+
+  const combo = partes.join(' ').replace(/\s+/g, ' ').trim();
+  const fallback = (item.detalle || '').toString().trim();
+
+  return combo || fallback;
+}
+
+/**
  * Busca el armazón y completa detalle + precio.
  * - Acepta códigos alfanuméricos (RB1130, VO979, 13336, 13-336, etc.).
  * - Si hay varios resultados, muestra un selector para elegir.
@@ -58,15 +76,17 @@ export async function buscarArmazonPorNumero(nInput, detalleInput, precioInput) 
 
     if (Array.isArray(res)) {
       if (res.length === 0) return notFound(code);
+
       if (res.length === 1) {
         item = res[0];
       } else if (window.Swal) {
         // Hay varios: pedir selección
         const options = {};
         res.forEach((r, i) => {
-          const det = (r.detalle || [r.marca, r.modelo, r.color].filter(Boolean).join(' ')).trim();
+          const det = buildDetalle(r);
           const p   = r.precio ? ` — $${r.precio}` : '';
-          options[i] = `${r.codigo}${det ? ' — ' + det : ''}${p}`;
+          const est = r.estado ? ` — ${r.estado}` : '';
+          options[i] = `${r.codigo}${det ? ' — ' + det : ''}${p}${est}`;
         });
 
         const { value: idx, isConfirmed } = await Swal.fire({
@@ -91,20 +111,19 @@ export async function buscarArmazonPorNumero(nInput, detalleInput, precioInput) 
 
     if (!item) return notFound(code);
 
-    // Completar campos
-    const detalle = (item.detalle || item.modelo || item.armazon || '').toString().trim();
+    // Completar campos con el nuevo detalle combinado
+    const detalle = buildDetalle(item);
     const precioNum = (item.precio || '').toString().replace(/[^\d]/g, ''); // deja solo dígitos
 
     if (detalleInput) detalleInput.value = detalle;
     if (precioInput)  {
       precioInput.value  = precioNum;
-
-      // 👇 Recalcular Total/Saldo inmediatamente
+      // Recalcular Total/Saldo inmediatamente
       precioInput.dispatchEvent(new Event('input',  { bubbles:true }));
       precioInput.dispatchEvent(new Event('change', { bubbles:true }));
     }
 
-    // Si el backend nos devolvió el código "oficial", lo dejamos escrito (ej: de 13336 → RB13336)
+    // Si el backend nos devolvió el código normalizado, lo dejamos escrito
     if (nInput && item.codigo) nInput.value = String(item.codigo).toUpperCase();
   } catch (err) {
     console.error('buscarArmazonPorNumero:', err);

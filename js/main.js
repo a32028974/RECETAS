@@ -7,8 +7,7 @@ import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
-// OJO: el archivo real debe llamarse exactamente "fotopack.js" (minúsculas)
-import { initPhotoPack } from './fotopack.js';
+import { initPhotoPack } from './fotoPack.js';
 
 // ===== Helpers DOM =====
 const $  = (id)  => document.getElementById(id);

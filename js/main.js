@@ -153,6 +153,11 @@ function sanitizeGradual(el, allowSigns = true){
   el.value = v;
 }
 function validateGradual(el){
+  // Defaults si faltan data-*
+  if (!el.dataset.step) {
+    if (el.classList.contains('grad-add')) { el.dataset.min = '0'; el.dataset.max = '4'; el.dataset.step = '0.25'; }
+    else                                   { el.dataset.min = '-30'; el.dataset.max = '20'; el.dataset.step = '0.25'; }
+  }
   const min  = parseFloat(el.dataset.min);
   const max  = parseFloat(el.dataset.max);
   const step = parseFloat(el.dataset.step);
@@ -212,16 +217,16 @@ function setupGraduacionesSelects() {
     return txt;
   };
 
-  // Orden visual: +max…+0.25, 0.00, −0.25…−max
+  // Orden visual: +max…+0.25, 0.00, −0.25…−max (al abrir queda “centrado” en 0)
   const fillCentered = (sel, maxAbs, step, showSign = false) => {
     if (!sel || sel.tagName !== 'SELECT') return;
     sel.innerHTML = '';
 
     for (let v = maxAbs; v >= step - 1e-9; v -= step) {
       const val = +v.toFixed(2);
-      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // positivos arriba del 0
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // positivos arriba
     }
-    addOpt(sel, '0.00', '0.00');                                // cero “al medio”
+    addOpt(sel, '0.00', '0.00');                                // cero al medio
     for (let v = -step; v >= -maxAbs - 1e-9; v -= step) {
       const val = +v.toFixed(2);
       addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // negativos abajo
@@ -249,6 +254,11 @@ function setupGraduacionesSelects() {
 function setupGraduacionesInputs(){
   document.querySelectorAll('input.grad').forEach(el=>{
     const isAdd = el.classList.contains('grad-add');
+    // defaults por si faltan data-*
+    if (!el.dataset.step) {
+      if (isAdd) { el.dataset.min = '0'; el.dataset.max = '4'; el.dataset.step = '0.25'; }
+      else       { el.dataset.min = '-30'; el.dataset.max = '20'; el.dataset.step = '0.25'; }
+    }
     el.addEventListener('input', ()=> sanitizeGradual(el, !isAdd));
     el.addEventListener('blur',  ()=> validateGradual(el));
     el.addEventListener('keydown', (e)=>{
@@ -298,6 +308,9 @@ function setupCalculos(){
     if (sal) sal.value = String(saldo);
   }
 
+  // Exponer para poder forzar recálculo cuando llenamos precios por código
+  window.__updateTotals = updateTotals;
+
   [pc, pa, po, se].forEach(el=>{
     if(!el) return;
     el.addEventListener('input', ()=>{ sanitizePrice(el); updateTotals(); });
@@ -307,7 +320,7 @@ function setupCalculos(){
 }
 
 // =========================================================================
-// Historial: últimos 15 al iniciar + buscador (best-effort; necesita ruta en Apps Script)
+// Historial: últimos 15 al iniciar + buscador (intenta varias rutas compatibles)
 // =========================================================================
 function renderHistorial(items = []) {
   const host = $('historial');
@@ -325,15 +338,23 @@ function renderHistorial(items = []) {
   }).join('');
 }
 
-async function cargarUltimosTrabajos(limit = 15) {
-  try {
-    const url = withParams(API_URL, { histUltimos: limit });
-    const data = await apiGet(url);          // espera array [{numero,nombre,cristal,armazon}, ...]
-    if (Array.isArray(data)) renderHistorial(data);
-  } catch (e) {
-    // si la ruta no existe aún, no rompemos nada
-    console.warn('Historial inicial no disponible:', e?.message);
+async function tryHist(paramsList){
+  for (const p of paramsList){
+    try {
+      const url = withParams(API_URL, p);
+      const data = await apiGet(url);
+      if (Array.isArray(data)) return data;
+    } catch {}
   }
+  return [];
+}
+
+async function cargarUltimosTrabajos(limit = 15) {
+  const data = await tryHist([
+    { histUltimos: limit },      // opción 1
+    { hist: 1, limit }           // opción 2 (fallback)
+  ]);
+  if (data.length) renderHistorial(data);
 }
 
 function initHistorialUI() {
@@ -341,20 +362,18 @@ function initHistorialUI() {
   const lim = $('hist-limit');
   const btn = $('hist-buscar');
 
-  if (lim) lim.value = '15'; // por pedido: últimos 15
+  if (lim) lim.value = '15';
   cargarUltimosTrabajos(15);
 
   if (btn) {
     btn.addEventListener('click', async () => {
-      try {
-        const limit = parseInt(lim?.value || '100', 10) || 100;
-        const query = (q?.value || '').trim();
-        const url = withParams(API_URL, { histBuscar: query, limit });
-        const data = await apiGet(url);      // espera array
-        if (Array.isArray(data)) renderHistorial(data);
-      } catch (e) {
-        console.warn('Historial búsqueda no disponible:', e?.message);
-      }
+      const limit = parseInt(lim?.value || '100', 10) || 100;
+      const query = (q?.value || '').trim();
+      const data = await tryHist([
+        { histBuscar: query, limit },     // opción 1
+        { hist: 1, limit, q: query }      // opción 2 (fallback)
+      ]);
+      renderHistorial(data);
     });
   }
 }
@@ -414,7 +433,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Nº armazón → buscar detalle/precio (admite alfanumérico con guión)
   const nAr=$('numero_armazon'), detAr=$('armazon_detalle'), prAr=$('precio_armazon');
   if(nAr){
-    const doAr = () => buscarArmazonPorNumero(nAr, detAr, prAr);
+    const doAr = async () => {
+      await buscarArmazonPorNumero(nAr, detAr, prAr);
+      // forzar recálculo de totales cuando vuelve el precio
+      if (prAr) { prAr.dispatchEvent(new Event('input', { bubbles:true })); }
+      if (typeof window.__updateTotals === 'function') window.__updateTotals();
+    };
     nAr.addEventListener('blur', doAr);
     nAr.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); doAr(); } });
     nAr.addEventListener('input', ()=>{

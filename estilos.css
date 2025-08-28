@@ -216,3 +216,46 @@ section[aria-label="Datos del trabajo"] .row.cols-3:first-child .seg label{
   padding: 10px 12px;
 }
 /* Importante: sin media-query que apile esas 3 celdas */
+/* ===== Tablet tuning para "Fecha / Modalidad / Fecha que retira" ===== */
+
+/* En esta fila mantenemos 3 columnas, pero damos más aire al date */
+@media (max-width: 1400px){
+  section[aria-label="Datos del trabajo"] .row.cols-3:first-child{
+    grid-template-columns: 1.1fr 0.8fr 1.1fr; /* fecha — modalidad — fecha */
+    column-gap: 10px;
+  }
+}
+
+/* Agrandar altura y tipografía de los date en general */
+input[type="date"]{
+  height: 52px;                 /* antes 44px */
+  font-size: 16px;              /* evita verse “chico” */
+}
+
+/* En WebKit (Chrome/Android) estos sub-selectores suben el tamaño del contenido del date */
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"]::-webkit-calendar-picker-indicator{
+  font-size: 16px;
+}
+
+/* Cuando la modalidad pasa a SELECT (por JS), que no se vea apretado */
+#entrega-select{
+  height: 52px;
+  font-size: 16px;
+  border: 1px solid #CFD6E4;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  color: var(--text);
+}
+
+/* En pantallas medianas (≈ tablets) dejamos todavía más aire si hace falta */
+@media (max-width: 1200px){
+  section[aria-label="Datos del trabajo"] .row.cols-3:first-child{
+    grid-template-columns: 1fr 0.9fr 1fr;
+  }
+}

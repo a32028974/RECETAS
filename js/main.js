@@ -1,5 +1,5 @@
 // /RECETAS/js/main.js — v2025-08-28
-// UI general + progreso + cámara + búsquedas + totales + graduaciones (SELECT o INPUT)
+// UI general + progreso + cámara + búsquedas + totales + graduaciones + historial
 
 // ===== Imports =====
 import { obtenerNumeroTrabajoDesdeTelefono } from './numeroTrabajo.js';
@@ -7,12 +7,13 @@ import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
-import { initPhotoPack } from './fotoPack.js'; // <- archivo con P mayúscula
+import { initPhotoPack } from './fotoPack.js'; // ojo: P mayúscula
 import { API_URL, withParams, apiGet } from './api.js'; // para historial
 
 // ===== Helpers DOM =====
 const $  = (id)  => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+const isSelect = (el) => el && el.tagName === 'SELECT';
 
 // =========================================================================
 // PROGRESO (overlay)
@@ -137,12 +138,12 @@ const generarNumeroTrabajoDesdeTelefono = () => {
 };
 
 // =========================================================================
-/* Graduaciones (EJE + inputs y/o selects para ESF/CIL) */
+// Graduaciones (EJE + inputs y/o selects para ESF/CIL)
 // =========================================================================
 function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
 function snapToStep(n, step){ return Math.round(n / step) * step; }
 
-// --- inputs de texto (compat)
+// --- inputs tipo texto (compat)
 function sanitizeGradual(el, allowSigns = true){
   let v = el.value;
   v = v.replace(/,/g, '').replace(/[^\d+.\-]/g, '');
@@ -153,7 +154,7 @@ function sanitizeGradual(el, allowSigns = true){
   el.value = v;
 }
 function validateGradual(el){
-  // Defaults si faltan data-*
+  // defaults seguros si faltan data-*
   if (!el.dataset.step) {
     if (el.classList.contains('grad-add')) { el.dataset.min = '0'; el.dataset.max = '4'; el.dataset.step = '0.25'; }
     else                                   { el.dataset.min = '-30'; el.dataset.max = '20'; el.dataset.step = '0.25'; }
@@ -217,7 +218,7 @@ function setupGraduacionesSelects() {
     return txt;
   };
 
-  // Orden visual: +max…+0.25, 0.00, −0.25…−max (al abrir queda “centrado” en 0)
+  // Orden visual: +max…+0.25, 0.00, −0.25…−max
   const fillCentered = (sel, maxAbs, step, showSign = false) => {
     if (!sel || sel.tagName !== 'SELECT') return;
     sel.innerHTML = '';
@@ -286,7 +287,58 @@ function setupGraduacionesInputs(){
 }
 
 // =========================================================================
-// Dinero / Totales
+/** Modalidad de entrega RESPONSIVE: radios → <select> en pantallas chicas */
+// =========================================================================
+function initEntregaResponsive() {
+  // buscamos el contenedor de los radios (chips)
+  const seg = document.querySelector('.seg input[name="entrega"]')?.closest('.seg');
+  const radios = Array.from(document.querySelectorAll("input[name='entrega']"));
+  if (!seg || radios.length === 0) return;
+
+  let select = null;
+
+  const buildSelect = () => {
+    if (select) return select;
+    select = document.createElement('select');
+    select.id = 'entrega-select';
+    select.innerHTML = `
+      <option value="7">Stock (7 días)</option>
+      <option value="3">Urgente (3 días)</option>
+      <option value="15">Laboratorio (15 días)</option>
+    `;
+    const checked = radios.find(r => r.checked)?.value || '7';
+    select.value = checked;
+
+    select.addEventListener('change', () => {
+      radios.forEach(r => { r.checked = (r.value === select.value); });
+      try { recalcularFechaRetiro(); } catch {}
+    });
+
+    return select;
+  };
+
+  const toSelect = () => {
+    if (select && select.parentNode) return;
+    seg.style.display = 'none';
+    seg.insertAdjacentElement('afterend', buildSelect());
+  };
+
+  const toRadios = () => {
+    seg.style.display = '';
+    if (select && select.parentNode) {
+      select.parentNode.removeChild(select);
+      select = null;
+    }
+  };
+
+  // Regla: < 980px → select ; >= 980px → radios
+  const applyMode = () => (window.innerWidth < 980 ? toSelect() : toRadios());
+  applyMode();
+  window.addEventListener('resize', applyMode);
+}
+
+// =========================================================================
+/** Dinero / Totales */
 // =========================================================================
 function parseMoney(v){
   const n = parseFloat(String(v).replace(/[^\d.-]/g, ''));
@@ -308,7 +360,7 @@ function setupCalculos(){
     if (sal) sal.value = String(saldo);
   }
 
-  // Exponer para poder forzar recálculo cuando llenamos precios por código
+  // expongo para forzar recálculo cuando llenamos precio desde armazón
   window.__updateTotals = updateTotals;
 
   [pc, pa, po, se].forEach(el=>{
@@ -320,7 +372,7 @@ function setupCalculos(){
 }
 
 // =========================================================================
-// Historial: últimos 15 al iniciar + buscador (intenta varias rutas compatibles)
+// Historial: últimos 15 al iniciar + buscador (intenta varias rutas)
 // =========================================================================
 function renderHistorial(items = []) {
   const host = $('historial');
@@ -337,7 +389,6 @@ function renderHistorial(items = []) {
     return `<div>🧾 <strong>${n || '—'}</strong> — ${nm || 'SIN NOMBRE'} — <span>${cr || '—'}</span> — <span>${ar || '—'}</span></div>`;
   }).join('');
 }
-
 async function tryHist(paramsList){
   for (const p of paramsList){
     try {
@@ -348,7 +399,6 @@ async function tryHist(paramsList){
   }
   return [];
 }
-
 async function cargarUltimosTrabajos(limit = 15) {
   const data = await tryHist([
     { histUltimos: limit },      // opción 1
@@ -356,7 +406,6 @@ async function cargarUltimosTrabajos(limit = 15) {
   ]);
   if (data.length) renderHistorial(data);
 }
-
 function initHistorialUI() {
   const q   = $('hist-q');
   const lim = $('hist-limit');
@@ -399,6 +448,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Fecha hoy y cálculo de retiro
   cargarFechaHoy();
+
+  // NUEVO: radios → select si la pantalla es chica (ahorra espacio en tablet)
+  initEntregaResponsive();
+
+  // Listeners para recalcular retiro
   $$("input[name='entrega']").forEach(r => r.addEventListener('change', recalcularFechaRetiro));
   const fechaEnc = $('fecha'); if(fechaEnc) fechaEnc.addEventListener('change', recalcularFechaRetiro);
   recalcularFechaRetiro();

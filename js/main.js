@@ -1,4 +1,4 @@
-// /RECETAS/js/main.js — v2025-08-27
+// /RECETAS/js/main.js — v2025-08-28
 // UI general + progreso + cámara + búsquedas + totales + graduaciones (SELECT o INPUT)
 
 // ===== Imports =====
@@ -7,7 +7,8 @@ import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
-import { initPhotoPack } from './fotoPack.js';
+// OJO: el archivo real debe llamarse exactamente "fotopack.js" (minúsculas)
+import { initPhotoPack } from './fotopack.js';
 
 // ===== Helpers DOM =====
 const $  = (id)  => document.getElementById(id);
@@ -34,8 +35,8 @@ function getOverlayHost() {
     host.id = 'spinner';
     document.body.appendChild(host);
   }
-  host.classList.add('spinner');      // coincide con estilos.css
-  host.classList.remove('spinner-screen'); // limpieza de versiones viejas
+  host.classList.add('spinner');
+  host.classList.remove('spinner-screen');
   return host;
 }
 
@@ -201,10 +202,8 @@ function validarEjesRequeridos(){
   return ok1 && ok2;
 }
 
-// --- selects (nuevo)
+// --- selects (definitivo, sin placeholders ni función "fill" fantasma)
 function setupGraduacionesSelects() {
-  const isSel = (el) => el && el.tagName === 'SELECT';
-
   const addOpt = (sel, val, label) => {
     const o = document.createElement('option');
     o.value = val;
@@ -214,20 +213,18 @@ function setupGraduacionesSelects() {
 
   const fmt = (v, showSign) => {
     let txt = Math.abs(v) < 1e-9 ? '0.00' : v.toFixed(2);
-    if (showSign && v > 0) txt = '+' + txt;  // 0 no lleva signo
+    if (showSign && v > 0) txt = '+' + txt;
     return txt;
   };
 
-  // Rellena con "cero primero" y deja seleccionado 0.00
   const fillZeroFirst = (sel, from, to, step, showSign = false) => {
-    if (!isSel(sel)) return;
-    sel.innerHTML = '';                       // SIN placeholder
+    if (!sel || sel.tagName !== 'SELECT') return;
+    sel.innerHTML = '';
 
     const stepAbs = Math.abs(step);
     const upper   = Math.max(from, to);
     const lower   = Math.min(from, to);
 
-    // 0, luego positivos, luego negativos
     addOpt(sel, '0.00', '0.00');
     for (let v = 0 + stepAbs; v <= upper + 1e-9; v += stepAbs) {
       const val = +v.toFixed(2);
@@ -237,19 +234,14 @@ function setupGraduacionesSelects() {
       const val = +v.toFixed(2);
       addOpt(sel, fmt(val, showSign), fmt(val, showSign));
     }
-
-    sel.value = '0.00';                       // queda seleccionado en 0
+    sel.value = '0.00';
   };
 
-  // ESF: -30 → +20, paso 0.25, con signo en positivos
   fillZeroFirst(document.getElementById('od_esf'), -30, 20, 0.25, true);
   fillZeroFirst(document.getElementById('oi_esf'), -30, 20, 0.25, true);
-
-  // CIL: 0 → -8, paso -0.25 (cero primero por definición)
   fillZeroFirst(document.getElementById('od_cil'), 0, -8, -0.25, false);
   fillZeroFirst(document.getElementById('oi_cil'), 0, -8, -0.25, false);
 
-  // Si cambia CIL, validamos si EJE es requerido
   [['od_cil','od_eje'], ['oi_cil','oi_eje']].forEach(([cilId, ejeId]) => {
     const cil = document.getElementById(cilId);
     const eje = document.getElementById(ejeId);
@@ -257,23 +249,7 @@ function setupGraduacionesSelects() {
   });
 }
 
-
-  // ESF: -30 → +20 (0.25)
-  fill($('od_esf'), -30, 20, 0.25, true);
-  fill($('oi_esf'), -30, 20, 0.25, true);
-
-  // CIL: 0 → -8 (-0.25) – común en práctica
-  fill($('od_cil'), 0, -8, -0.25, false);
-  fill($('oi_cil'), 0, -8, -0.25, false);
-
-  // al cambiar CIL, validar si EJE es requerido
-  [['od_cil','od_eje'], ['oi_cil','oi_eje']].forEach(([cilId, ejeId]) => {
-    const cil = $(cilId), eje = $(ejeId);
-    if (cil && eje) cil.addEventListener('change', () => checkEjeRequerido(cil, eje));
-  });
-}
-
-// --- inputs tipo "grad" (compat con versiones viejas de index)
+// --- inputs tipo "grad"
 function setupGraduacionesInputs(){
   document.querySelectorAll('input.grad').forEach(el=>{
     const isAdd = el.classList.contains('grad-add');
@@ -359,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const fechaEnc = $('fecha'); if(fechaEnc) fechaEnc.addEventListener('change', recalcularFechaRetiro);
   recalcularFechaRetiro();
 
-  // Graduaciones (primero SELECTs si existen, y además soporte para inputs .grad)
+  // Graduaciones
   setupGraduacionesSelects();
   setupGraduacionesInputs();
 
@@ -419,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
       progress.autoAdvance(6000);
 
       try{
-        await guardarTrabajo({ progress }); // si guardar.js no usa progress, no pasa nada
+        await guardarTrabajo({ progress });
         progress.doneAndHide(800);
       } catch (err){
         console.error(err);

@@ -564,8 +564,21 @@ document.addEventListener('DOMContentLoaded', () => {
       progress.autoAdvance(6000);
 
       try{
-        await guardarTrabajo({ progress });
-        progress.doneAndHide(800);
+        await guardarTrabajo({ progress });  // que NO dispare Swal por adentro
+await progress.doneAndHide(0);       // escondé overlay ya mismo
+setTimeout(() => {
+  if (window.Swal) {
+    Swal.fire({
+      icon: 'success',
+      title: 'Guardado y PDF enviado',
+      text: '¿Imprimir ahora?',
+      showCancelButton: true,
+      confirmButtonText: 'Imprimir',
+      cancelButtonText: 'Cerrar'
+    }).then(r => { if (r.isConfirmed) window.print(); });
+  }
+}, 30); // pequeño delay para asegurarnos que el overlay ya se ocultó
+
       } catch (err){
         console.error(err);
         progress.fail(err?.message || 'Error al guardar');

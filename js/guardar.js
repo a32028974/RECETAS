@@ -66,11 +66,28 @@ export async function guardarTrabajo() {
     if (!V("nombre"))         throw new Error("Ingresá el nombre");
 
     // 1) Guardar en la planilla (POST x-www-form-urlencoded)
-    const formEl = $("formulario");
-    const body = new URLSearchParams(new FormData(formEl));
-    const res = await fetch(API_URL, { method: "POST", body });
-    const rawPost = await res.text();
-    if (!res.ok) throw new Error(rawPost || "Error al guardar en la planilla");
+const formEl = document.getElementById("formulario");
+const body = new URLSearchParams(new FormData(formEl));
+
+// ✅ Agregar manualmente campos que estén fuera del <form>
+body.set("numero_trabajo", document.getElementById("numero_trabajo")?.value || "");
+
+// (opcional) si querés asegurarte:
+body.set("dni",    document.getElementById("dni")?.value || body.get("dni") || "");
+body.set("nombre", document.getElementById("nombre")?.value || body.get("nombre") || "");
+
+// Hacemos el POST y verificamos el JSON {ok:true}
+const postRes = await fetch(API_URL, { method: "POST", body });
+const postRaw = await postRes.text();
+if (!postRes.ok) throw new Error(postRaw || "Error HTTP al guardar en la planilla");
+
+let postJson = null; 
+try { postJson = JSON.parse(postRaw); } catch {}
+if (!postJson?.ok) {
+  const msg = postJson?.error || "La planilla no confirmó el guardado";
+  throw new Error(msg);
+}
+
 
     // 2) Generar PDF + Telegram (PACK_URL)
     const payload = {

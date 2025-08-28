@@ -60,13 +60,33 @@ export async function guardarTrabajo({ progress } = {}) {
     setStep('Validando datos', 'done');
 
     // 1) Guardar en planilla
-    setStep('Guardando en planilla', 'run');
-    const formEl = $("formulario");
-    const body = new URLSearchParams(new FormData(formEl));
-    const res = await fetch(API_URL, { method: "POST", body });
-    const rawPost = await res.text();
-    if (!res.ok) throw new Error(rawPost || "Error al guardar en la planilla");
-    setStep('Guardando en planilla', 'done');
+setStep('Guardando en planilla', 'run');
+const formEl = $("formulario");
+const body = new URLSearchParams(new FormData(formEl));
+
+let postJson;
+try {
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body,                      // application/x-www-form-urlencoded
+    // headers no son necesarios, el browser los setea por ser URLSearchParams
+  });
+  const txt = await res.text();              // leo texto para log y luego intento parsear
+  try { postJson = JSON.parse(txt); } catch { postJson = null; }
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${txt.slice(0,200)}`);
+  }
+  if (!postJson || postJson.ok !== true) {
+    const msg = (postJson && postJson.error) ? postJson.error : 'Respuesta inválida del servidor';
+    throw new Error(msg);
+  }
+} catch (e) {
+  console.error('Error al guardar en planilla:', e);
+  throw e;                                   // esto corta el flujo y muestra el error
+}
+setStep('Guardando en planilla', 'done');
+
 
     // 2) Generar PDF
     setStep('Generando PDF', 'run');

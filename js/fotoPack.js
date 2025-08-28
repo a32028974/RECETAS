@@ -1,4 +1,4 @@
-// js/fotopack.js
+// js/fotoPack.js
 // ==============================
 // Cámara + Galería (tablet/PC)
 // ==============================

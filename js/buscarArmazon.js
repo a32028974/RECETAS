@@ -21,12 +21,17 @@ export async function buscarArmazonPorNumero(nInput, detalleInput, precioInput) 
   // Helper de "no encontrado"
   const notFound = (c) => {
     if (detalleInput) detalleInput.value = '';
-    if (precioInput)  precioInput.value  = '';
+    if (precioInput)  {
+      precioInput.value  = '';
+      // asegura que el total/saldo se recalculen si estaban en otro valor
+      precioInput.dispatchEvent(new Event('input',  { bubbles:true }));
+      precioInput.dispatchEvent(new Event('change', { bubbles:true }));
+    }
     if (window.Swal) Swal.fire('No encontrado', `No se encontró el armazón "${c}".`, 'warning');
   };
 
   try {
-    // Loader
+    // Loader (si hay SweetAlert disponible)
     if (window.Swal) {
       Swal.fire({
         title: 'Buscando armazón…',
@@ -55,7 +60,7 @@ export async function buscarArmazonPorNumero(nInput, detalleInput, precioInput) 
       if (res.length === 0) return notFound(code);
       if (res.length === 1) {
         item = res[0];
-      } else {
+      } else if (window.Swal) {
         // Hay varios: pedir selección
         const options = {};
         res.forEach((r, i) => {
@@ -76,6 +81,9 @@ export async function buscarArmazonPorNumero(nInput, detalleInput, precioInput) 
 
         if (!isConfirmed) return; // usuario canceló
         item = res[parseInt(idx, 10)];
+      } else {
+        // Sin Swal: tomar el primero como fallback
+        item = res[0];
       }
     } else {
       item = res; // objeto único
@@ -88,7 +96,13 @@ export async function buscarArmazonPorNumero(nInput, detalleInput, precioInput) 
     const precioNum = (item.precio || '').toString().replace(/[^\d]/g, ''); // deja solo dígitos
 
     if (detalleInput) detalleInput.value = detalle;
-    if (precioInput)  precioInput.value  = precioNum;
+    if (precioInput)  {
+      precioInput.value  = precioNum;
+
+      // 👇 Recalcular Total/Saldo inmediatamente
+      precioInput.dispatchEvent(new Event('input',  { bubbles:true }));
+      precioInput.dispatchEvent(new Event('change', { bubbles:true }));
+    }
 
     // Si el backend nos devolvió el código "oficial", lo dejamos escrito (ej: de 13336 → RB13336)
     if (nInput && item.codigo) nInput.value = String(item.codigo).toUpperCase();

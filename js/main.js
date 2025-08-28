@@ -332,7 +332,7 @@ function initEntregaResponsive() {
   };
 
   // Regla: < 980px → select ; >= 980px → radios
-  const applyMode = () => (window.innerWidth < 980 ? toSelect() : toRadios());
+  const applyMode = () => (window.innerWidth < 1200 ? toSelect() : toRadios());
   applyMode();
   window.addEventListener('resize', applyMode);
 }

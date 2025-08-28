@@ -103,12 +103,13 @@ export async function guardarTrabajo({ progress } = {}) {
       setStep('Guardando link del PDF', 'done');
     }
 
-    // 3) (Opcional) Enviando por Telegram ya lo hizo el PACK. Lo marcamos igual.
+        // 3) (Opcional) Enviando por Telegram ya lo hizo el PACK. Lo marcamos igual.
     setStep('Enviando por Telegram', 'done');
     setStep('Listo', 'done');
 
-    // Cerrar overlay ANTES del diálogo (sensación de “no colgado”)
-    try { progress?.complete?.(); } catch {}
+    // ✅ Ocultar overlay de progreso ANTES del Swal
+    try { progress?.doneAndHide?.(0); } catch {}
+    if (spinner) spinner.style.display = "none"; // por si quedó visible
 
     // Confirmar impresión
     if (window.Swal) {
@@ -124,6 +125,7 @@ export async function guardarTrabajo({ progress } = {}) {
     } else {
       if (confirm("Guardado y PDF enviado.\n¿Imprimir ahora?")) window.print();
     }
+
 
   } catch (err) {
     try { progress?.fail?.(err?.message || 'Error al guardar'); } catch {}

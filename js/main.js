@@ -7,12 +7,11 @@ import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
-import { initPhotoPack } from './fotoPack.js';
+import { initPhotoPack } from './fotoPack.js'; // <- archivo con P mayúscula
 
 // ===== Helpers DOM =====
 const $  = (id)  => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-const isSelect = (el) => el && el.tagName === 'SELECT';
 
 // =========================================================================
 // PROGRESO (overlay)
@@ -104,10 +103,6 @@ function progressAPI(steps = PROGRESS_STEPS) {
   return { next, mark, autoAdvance, complete, fail, doneAndHide };
 }
 
-// accesos legacy
-function lockForm(){ const sp = getOverlayHost(); sp.style.display = 'flex'; }
-function unlockForm(){ const sp = getOverlayHost(); sp.style.display = 'none'; }
-
 // =========================================================================
 // Fechas
 // =========================================================================
@@ -132,7 +127,7 @@ function recalcularFechaRetiro(){
 }
 
 // =========================================================================
-/* Nº de trabajo desde teléfono */
+// Nº de trabajo desde teléfono
 // =========================================================================
 const generarNumeroTrabajoDesdeTelefono = () => {
   const tel = $('telefono'), out = $('numero_trabajo');
@@ -141,7 +136,7 @@ const generarNumeroTrabajoDesdeTelefono = () => {
 };
 
 // =========================================================================
-// Graduaciones (EJE + inputs y/o selects para ESF/CIL)
+/* Graduaciones (EJE + inputs y/o selects para ESF/CIL) */
 // =========================================================================
 function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
 function snapToStep(n, step){ return Math.round(n / step) * step; }
@@ -201,7 +196,8 @@ function validarEjesRequeridos(){
   return ok1 && ok2;
 }
 
-// --- selects function setupGraduacionesSelects() {
+// --- SELECTS (0 en el medio, + arriba, − abajo)
+function setupGraduacionesSelects() {
   const addOpt = (sel, val, label) => {
     const o = document.createElement('option');
     o.value = val;
@@ -215,7 +211,7 @@ function validarEjesRequeridos(){
     return txt;
   };
 
-  // Rellena: 0, +0.25 … +max, -0.25 … -max
+  // Rellena: 0, +0.25 … +max, −0.25 … −max
   const fillZeroFirst = (sel, maxAbs, step, showSign = false) => {
     if (!sel || sel.tagName !== 'SELECT') return;
     sel.innerHTML = '';
@@ -236,18 +232,17 @@ function validarEjesRequeridos(){
   fillZeroFirst(document.getElementById('od_esf'), 30, 0.25, true);
   fillZeroFirst(document.getElementById('oi_esf'), 30, 0.25, true);
 
-  // CIL: ±8 (0.25), con signo  ← ANTES solo negativos
+  // CIL: ±8 (0.25), con signo
   fillZeroFirst(document.getElementById('od_cil'), 8, 0.25, true);
   fillZeroFirst(document.getElementById('oi_cil'), 8, 0.25, true);
 
-  // Si cambia CIL, validamos si EJE es requerido
+  // Si cambia CIL, validar si EJE es requerido
   [['od_cil','od_eje'], ['oi_cil','oi_eje']].forEach(([cilId, ejeId]) => {
     const cil = document.getElementById(cilId);
     const eje = document.getElementById(ejeId);
     if (cil && eje) cil.addEventListener('change', () => checkEjeRequerido(cil, eje));
   });
 }
-
 
 // --- inputs tipo "grad"
 function setupGraduacionesInputs(){

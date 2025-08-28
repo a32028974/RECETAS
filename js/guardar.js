@@ -1,22 +1,28 @@
 // js/guardar.js
-import { API_URL, withParams, apiGet } from "./api.js";
-
-// Apps Script que genera el PDF + Telegram (el tuyo)
-const PACK_URL = "https://script.google.com/macros/s/AKfycbyAc51qga-xnN3319jcVmAWwz7NTlNH-Lht3IwRIt8PT0MAy_ZKpcGJiohQZIFPfIONsA/exec";
+import { API_URL, PACK_URL, withParams, apiGet } from "./api.js";
 
 /* ===== Helpers ===== */
 const $ = (id) => document.getElementById(id);
 const V = (id) => (document.getElementById(id)?.value ?? "").toString().trim();
 const U = (v) => (v ?? "").toString().trim().toUpperCase();
 
+function syncNumeroTrabajoHidden() {
+  // Copia el visible (#numero_trabajo) al hidden (#numero_trabajo_hidden) que está dentro del <form>
+  const vis = $("numero_trabajo");
+  const hid = $("numero_trabajo_hidden");
+  if (vis && hid) hid.value = vis.value.trim();
+}
+
 function entregaTxt() {
   const r = document.querySelector("input[name='entrega']:checked");
   return r?.value === "3" ? "URGENTE" : r?.value === "15" ? "LABORATORIO" : "NORMAL";
 }
+
 function fotosBase64() {
   const a = Array.isArray(window.__FOTOS) ? window.__FOTOS : [];
   return a.map(d => (d.split(",")[1] || "").trim()).filter(Boolean);
 }
+
 function resumenPack() {
   const money = (v) => (v ? `$ ${v}` : "");
   return {
@@ -47,51 +53,53 @@ function resumenPack() {
 // 👉 acepta { progress } y marca cada paso
 export async function guardarTrabajo({ progress } = {}) {
   const spinner = $("spinner");
-  const setStep = (label, status='done') => { try { progress?.mark?.(label, status); } catch {} };
+  const setStep = (label, status = "done") => { try { progress?.mark?.(label, status); } catch {} };
 
   try {
-    spinner && (spinner.style.display = "block");
+    if (spinner) spinner.style.display = "block";
 
-    // Validaciones
-    setStep('Validando datos', 'run');
-    if (!V("numero_trabajo")) throw new Error("Ingresá el número de trabajo");
-    if (!V("dni"))            throw new Error("Ingresá el DNI");
-    if (!V("nombre"))         throw new Error("Ingresá el nombre");
-    setStep('Validando datos', 'done');
+    // Sincronizar hidden ANTES de leer/validar y de armar FormData
+    syncNumeroTrabajoHidden();
+
+    // Validaciones mínimas
+    setStep("Validando datos", "run");
+    const nro = V("numero_trabajo"); // visible para validar UX
+    if (!nro) throw new Error("Ingresá el número de trabajo");
+    if (!V("dni")) throw new Error("Ingresá el DNI");
+    if (!V("nombre")) throw new Error("Ingresá el nombre");
+    setStep("Validando datos", "done");
 
     // 1) Guardar en planilla
-setStep('Guardando en planilla', 'run');
-const formEl = $("formulario");
-const body = new URLSearchParams(new FormData(formEl));
+    setStep("Guardando en planilla", "run");
+    const formEl = $("formulario");
+    if (!formEl) throw new Error("Formulario no encontrado");
 
-let postJson;
-try {
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body,                      // application/x-www-form-urlencoded
-    // headers no son necesarios, el browser los setea por ser URLSearchParams
-  });
-  const txt = await res.text();              // leo texto para log y luego intento parsear
-  try { postJson = JSON.parse(txt); } catch { postJson = null; }
+    // Armo el cuerpo con todo lo que esté DENTRO del <form> (incluye el hidden numero_trabajo)
+    const body = new URLSearchParams(new FormData(formEl));
 
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${txt.slice(0,200)}`);
-  }
-  if (!postJson || postJson.ok !== true) {
-    const msg = (postJson && postJson.error) ? postJson.error : 'Respuesta inválida del servidor';
-    throw new Error(msg);
-  }
-} catch (e) {
-  console.error('Error al guardar en planilla:', e);
-  throw e;                                   // esto corta el flujo y muestra el error
-}
-setStep('Guardando en planilla', 'done');
+    let postJson;
+    try {
+      const res = await fetch(API_URL, { method: "POST", body });
+      const txt = await res.text(); // para log/diagnóstico
+      try { postJson = JSON.parse(txt); } catch { postJson = null; }
 
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${txt.slice(0, 200)}`);
+      }
+      if (!postJson || postJson.ok !== true) {
+        const msg = (postJson && postJson.error) ? postJson.error : "Respuesta inválida del servidor";
+        throw new Error(msg);
+      }
+    } catch (e) {
+      console.error("Error al guardar en planilla:", e);
+      throw e; // corta el flujo
+    }
+    setStep("Guardando en planilla", "done");
 
-    // 2) Generar PDF
-    setStep('Generando PDF', 'run');
+    // 2) Generar PDF + Telegram (lo hace tu Apps Script PACK)
+    setStep("Generando PDF", "run");
     const payload = {
-      numero_trabajo: V("numero_trabajo"),
+      numero_trabajo: nro,
       dni: V("dni"),
       nombre: U(V("nombre")),
       resumen: resumenPack(),
@@ -108,28 +116,31 @@ setStep('Guardando en planilla', 'done');
     let j; try { j = JSON.parse(raw); } catch { j = null; }
     if (!j?.ok) throw new Error("No se pudo crear/enviar el PDF");
     const packUrl = j.url || j.pdf || "";
-    setStep('Generando PDF', 'done');
+    setStep("Generando PDF", "done");
 
-    // 2.b) Guardar link del PDF en hidden
-    const hidden = $("pack_url"); if (hidden) hidden.value = packUrl;
+    // 2.b) Guardar link del PDF en hidden (name="pdf") — viaja en futuros guardados si hiciera falta
+    const hidden = $("pack_url");
+    if (hidden) hidden.value = packUrl;
 
-    // 2.c) Actualizar columna PDF
+    // 2.c) Actualizar columna PDF en la fila (best-effort)
     if (packUrl) {
-      setStep('Guardando link del PDF', 'run');
+      setStep("Guardando link del PDF", "run");
       try {
-        const setUrl = withParams(API_URL, { setPdf: 1, numero: V("numero_trabajo"), url: packUrl });
+        const setUrl = withParams(API_URL, { setPdf: 1, numero: nro, url: packUrl });
         await apiGet(setUrl);
-      } catch {}
-      setStep('Guardando link del PDF', 'done');
+      } catch (e) {
+        console.warn("No se pudo actualizar la columna PDF:", e?.message || e);
+      }
+      setStep("Guardando link del PDF", "done");
     }
 
-        // 3) (Opcional) Enviando por Telegram ya lo hizo el PACK. Lo marcamos igual.
-    setStep('Enviando por Telegram', 'done');
-    setStep('Listo', 'done');
+    // 3) (Opcional) Enviando por Telegram ya lo hizo el PACK. Lo marcamos igual.
+    setStep("Enviando por Telegram", "done");
+    setStep("Listo", "done");
 
-    // ✅ Ocultar overlay de progreso ANTES del Swal
+    // Cerrar overlay de progreso ANTES del diálogo (sensación de “no colgado”)
     try { progress?.doneAndHide?.(0); } catch {}
-    if (spinner) spinner.style.display = "none"; // por si quedó visible
+    if (spinner) spinner.style.display = "none";
 
     // Confirmar impresión
     if (window.Swal) {
@@ -146,12 +157,11 @@ setStep('Guardando en planilla', 'done');
       if (confirm("Guardado y PDF enviado.\n¿Imprimir ahora?")) window.print();
     }
 
-
   } catch (err) {
-    try { progress?.fail?.(err?.message || 'Error al guardar'); } catch {}
+    try { progress?.fail?.(err?.message || "Error al guardar"); } catch {}
     if (window.Swal) Swal.fire("Error", err?.message || "Error inesperado", "error");
     throw err;
   } finally {
-    spinner && (spinner.style.display = "none");
+    if ($("spinner")) $("spinner").style.display = "none";
   }
 }

@@ -8,6 +8,7 @@ import { buscarNombrePorDNI } from './buscarNombre.js';
 import { buscarArmazonPorNumero } from './buscarArmazon.js';
 import { guardarTrabajo } from './guardar.js';
 import { initPhotoPack } from './fotoPack.js'; // <- archivo con P mayúscula
+import { API_URL, withParams, apiGet } from './api.js'; // para historial
 
 // ===== Helpers DOM =====
 const $  = (id)  => document.getElementById(id);
@@ -196,7 +197,7 @@ function validarEjesRequeridos(){
   return ok1 && ok2;
 }
 
-// --- SELECTS (0 en el medio, + arriba, − abajo)
+// --- SELECTS (0 seleccionado; + arriba, − abajo)
 function setupGraduacionesSelects() {
   const addOpt = (sel, val, label) => {
     const o = document.createElement('option');
@@ -211,16 +212,16 @@ function setupGraduacionesSelects() {
     return txt;
   };
 
-  // Rellena: 0, +0.25 … +max, −0.25 … −max
-  const fillZeroFirst = (sel, maxAbs, step, showSign = false) => {
+  // Orden visual: +max…+0.25, 0.00, −0.25…−max
+  const fillCentered = (sel, maxAbs, step, showSign = false) => {
     if (!sel || sel.tagName !== 'SELECT') return;
     sel.innerHTML = '';
 
-    addOpt(sel, '0.00', '0.00');
-    for (let v = step; v <= maxAbs + 1e-9; v += step) {
+    for (let v = maxAbs; v >= step - 1e-9; v -= step) {
       const val = +v.toFixed(2);
-      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // positivos arriba
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // positivos arriba del 0
     }
+    addOpt(sel, '0.00', '0.00');                                // cero “al medio”
     for (let v = -step; v >= -maxAbs - 1e-9; v -= step) {
       const val = +v.toFixed(2);
       addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // negativos abajo
@@ -228,13 +229,13 @@ function setupGraduacionesSelects() {
     sel.value = '0.00';
   };
 
-  // ESF: ±30 (0.25), con signo
-  fillZeroFirst(document.getElementById('od_esf'), 30, 0.25, true);
-  fillZeroFirst(document.getElementById('oi_esf'), 30, 0.25, true);
+  // ESF: ±30 (0.25) con signo
+  fillCentered(document.getElementById('od_esf'), 30, 0.25, true);
+  fillCentered(document.getElementById('oi_esf'), 30, 0.25, true);
 
-  // CIL: ±8 (0.25), con signo
-  fillZeroFirst(document.getElementById('od_cil'), 8, 0.25, true);
-  fillZeroFirst(document.getElementById('oi_cil'), 8, 0.25, true);
+  // CIL: ±8 (0.25) con signo
+  fillCentered(document.getElementById('od_cil'), 8, 0.25, true);
+  fillCentered(document.getElementById('oi_cil'), 8, 0.25, true);
 
   // Si cambia CIL, validar si EJE es requerido
   [['od_cil','od_eje'], ['oi_cil','oi_eje']].forEach(([cilId, ejeId]) => {
@@ -306,6 +307,59 @@ function setupCalculos(){
 }
 
 // =========================================================================
+// Historial: últimos 15 al iniciar + buscador (best-effort; necesita ruta en Apps Script)
+// =========================================================================
+function renderHistorial(items = []) {
+  const host = $('historial');
+  if (!host) return;
+  if (!Array.isArray(items) || items.length === 0) {
+    host.innerHTML = '<em class="muted">Sin resultados</em>';
+    return;
+  }
+  host.innerHTML = items.map(it => {
+    const n  = (it.numero || it.num || it.nro || it.n_trabajo || '').toString().trim();
+    const nm = (it.nombre || it.cliente || '').toString().trim();
+    const cr = (it.cristal || '').toString().trim();
+    const ar = (it.armazon || it.detalle || '').toString().trim();
+    return `<div>🧾 <strong>${n || '—'}</strong> — ${nm || 'SIN NOMBRE'} — <span>${cr || '—'}</span> — <span>${ar || '—'}</span></div>`;
+  }).join('');
+}
+
+async function cargarUltimosTrabajos(limit = 15) {
+  try {
+    const url = withParams(API_URL, { histUltimos: limit });
+    const data = await apiGet(url);          // espera array [{numero,nombre,cristal,armazon}, ...]
+    if (Array.isArray(data)) renderHistorial(data);
+  } catch (e) {
+    // si la ruta no existe aún, no rompemos nada
+    console.warn('Historial inicial no disponible:', e?.message);
+  }
+}
+
+function initHistorialUI() {
+  const q   = $('hist-q');
+  const lim = $('hist-limit');
+  const btn = $('hist-buscar');
+
+  if (lim) lim.value = '15'; // por pedido: últimos 15
+  cargarUltimosTrabajos(15);
+
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      try {
+        const limit = parseInt(lim?.value || '100', 10) || 100;
+        const query = (q?.value || '').trim();
+        const url = withParams(API_URL, { histBuscar: query, limit });
+        const data = await apiGet(url);      // espera array
+        if (Array.isArray(data)) renderHistorial(data);
+      } catch (e) {
+        console.warn('Historial búsqueda no disponible:', e?.message);
+      }
+    });
+  }
+}
+
+// =========================================================================
 // Impresión / Limpieza
 // =========================================================================
 function buildPrintArea(){ try{ (window.__buildPrintArea||(()=>{}))(); }catch{} setTimeout(()=>window.print(),0); }
@@ -336,6 +390,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Totales
   setupCalculos();
+
+  // Historial (auto: últimos 15)
+  initHistorialUI();
 
   // Teléfono → Nº de trabajo
   const tel = $('telefono');

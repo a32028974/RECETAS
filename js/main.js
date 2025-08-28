@@ -1,4 +1,4 @@
-// /RECETAS/js/main.js — v2025-08-28
+// /RECETAS/js/main.js — v2025-08-28.1
 // UI general + progreso + cámara + búsquedas + totales + graduaciones + historial
 
 // ===== Imports =====
@@ -331,7 +331,7 @@ function initEntregaResponsive() {
     }
   };
 
-  // Regla: < 980px → select ; >= 980px → radios
+  // Regla: < 1200px → select ; >= 1200px → radios
   const applyMode = () => (window.innerWidth < 1200 ? toSelect() : toRadios());
   applyMode();
   window.addEventListener('resize', applyMode);
@@ -425,6 +425,16 @@ function initHistorialUI() {
       renderHistorial(data);
     });
   }
+
+  // Enter en el buscador de historial → ejecuta búsqueda (sin enviar el form)
+  if (q) {
+    q.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        btn?.click();
+      }
+    });
+  }
 }
 
 // =========================================================================
@@ -437,6 +447,31 @@ function limpiarFormulario(){
   const gal=$('galeria-fotos'); if(gal) gal.innerHTML='';
   if (Array.isArray(window.__FOTOS)) window.__FOTOS.length = 0;
   recalcularFechaRetiro();
+}
+
+// =========================================================================
+// SOLO SE GUARDA CON CLICK: bloquear submit con Enter
+// =========================================================================
+function bloquearSubmitConEnter(form){
+  if (!form) return;
+  form.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+
+    const t = e.target;
+    const tag = (t?.tagName || '').toUpperCase();
+    const type = (t?.type || '').toLowerCase();
+
+    // Permitimos Enter en textareas o elementos marcados explícitamente
+    const esTextArea = tag === 'TEXTAREA';
+    const enterPermitido = t?.dataset?.enterOk === '1';
+
+    // Si es el botón Guardar y se presiona Enter sobre el botón, dejamos que haga click
+    const esSubmitButton = (tag === 'BUTTON' && type === 'submit');
+
+    if (!esTextArea && !enterPermitido && !esSubmitButton) {
+      e.preventDefault(); // evita que el Enter dispare el submit del form
+    }
+  });
 }
 
 // =========================================================================
@@ -516,6 +551,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Guardar
   const form=$('formulario');
+
+  // 🔒 Bloquear submit con Enter — solo se guarda al hacer click en el botón Guardar
+  bloquearSubmitConEnter(form);
+
   if(form){
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();

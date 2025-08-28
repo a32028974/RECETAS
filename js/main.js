@@ -1,4 +1,4 @@
-// /RECETAS/js/main.js — v2025-08-28.1
+// /RECETAS/js/main.js — v2025-08-28.2
 // UI general + progreso + cámara + búsquedas + totales + graduaciones + historial
 
 // ===== Imports =====
@@ -154,7 +154,6 @@ function sanitizeGradual(el, allowSigns = true){
   el.value = v;
 }
 function validateGradual(el){
-  // defaults seguros si faltan data-*
   if (!el.dataset.step) {
     if (el.classList.contains('grad-add')) { el.dataset.min = '0'; el.dataset.max = '4'; el.dataset.step = '0.25'; }
     else                                   { el.dataset.min = '-30'; el.dataset.max = '20'; el.dataset.step = '0.25'; }
@@ -214,23 +213,22 @@ function setupGraduacionesSelects() {
 
   const fmt = (v, showSign) => {
     let txt = Math.abs(v) < 1e-9 ? '0.00' : v.toFixed(2);
-    if (showSign && v > 0) txt = '+' + txt;  // 0 sin signo
+    if (showSign && v > 0) txt = '+' + txt;
     return txt;
   };
 
-  // Orden visual: +max…+0.25, 0.00, −0.25…−max
   const fillCentered = (sel, maxAbs, step, showSign = false) => {
     if (!sel || sel.tagName !== 'SELECT') return;
     sel.innerHTML = '';
 
     for (let v = maxAbs; v >= step - 1e-9; v -= step) {
       const val = +v.toFixed(2);
-      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // positivos arriba
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));
     }
-    addOpt(sel, '0.00', '0.00');                                // cero al medio
+    addOpt(sel, '0.00', '0.00');
     for (let v = -step; v >= -maxAbs - 1e-9; v -= step) {
       const val = +v.toFixed(2);
-      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // negativos abajo
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));
     }
     sel.value = '0.00';
   };
@@ -255,7 +253,6 @@ function setupGraduacionesSelects() {
 function setupGraduacionesInputs(){
   document.querySelectorAll('input.grad').forEach(el=>{
     const isAdd = el.classList.contains('grad-add');
-    // defaults por si faltan data-*
     if (!el.dataset.step) {
       if (isAdd) { el.dataset.min = '0'; el.dataset.max = '4'; el.dataset.step = '0.25'; }
       else       { el.dataset.min = '-30'; el.dataset.max = '20'; el.dataset.step = '0.25'; }
@@ -287,10 +284,9 @@ function setupGraduacionesInputs(){
 }
 
 // =========================================================================
-/** Modalidad de entrega RESPONSIVE: radios → <select> en pantallas chicas */
+// Modalidad de entrega RESPONSIVE: radios → <select> en pantallas chicas
 // =========================================================================
 function initEntregaResponsive() {
-  // buscamos el contenedor de los radios (chips)
   const seg = document.querySelector('.seg input[name="entrega"]')?.closest('.seg');
   const radios = Array.from(document.querySelectorAll("input[name='entrega']"));
   if (!seg || radios.length === 0) return;
@@ -331,14 +327,14 @@ function initEntregaResponsive() {
     }
   };
 
-  // Regla: < 1200px → select ; >= 1200px → radios
+  // < 1200px → select ; >= 1200px → radios
   const applyMode = () => (window.innerWidth < 1200 ? toSelect() : toRadios());
   applyMode();
   window.addEventListener('resize', applyMode);
 }
 
 // =========================================================================
-/** Dinero / Totales */
+// Dinero / Totales
 // =========================================================================
 function parseMoney(v){
   const n = parseFloat(String(v).replace(/[^\d.-]/g, ''));
@@ -360,7 +356,6 @@ function setupCalculos(){
     if (sal) sal.value = String(saldo);
   }
 
-  // expongo para forzar recálculo cuando llenamos precio desde armazón
   window.__updateTotals = updateTotals;
 
   [pc, pa, po, se].forEach(el=>{
@@ -372,7 +367,7 @@ function setupCalculos(){
 }
 
 // =========================================================================
-// Historial: últimos 15 al iniciar + buscador (intenta varias rutas)
+// Historial
 // =========================================================================
 function renderHistorial(items = []) {
   const host = $('historial');
@@ -401,8 +396,8 @@ async function tryHist(paramsList){
 }
 async function cargarUltimosTrabajos(limit = 15) {
   const data = await tryHist([
-    { histUltimos: limit },      // opción 1
-    { hist: 1, limit }           // opción 2 (fallback)
+    { histUltimos: limit },
+    { hist: 1, limit }
   ]);
   if (data.length) renderHistorial(data);
 }
@@ -419,20 +414,16 @@ function initHistorialUI() {
       const limit = parseInt(lim?.value || '100', 10) || 100;
       const query = (q?.value || '').trim();
       const data = await tryHist([
-        { histBuscar: query, limit },     // opción 1
-        { hist: 1, limit, q: query }      // opción 2 (fallback)
+        { histBuscar: query, limit },
+        { hist: 1, limit, q: query }
       ]);
       renderHistorial(data);
     });
   }
 
-  // Enter en el buscador de historial → ejecuta búsqueda (sin enviar el form)
   if (q) {
     q.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        btn?.click();
-      }
+      if (e.key === 'Enter') { e.preventDefault(); btn?.click(); }
     });
   }
 }
@@ -456,20 +447,14 @@ function bloquearSubmitConEnter(form){
   if (!form) return;
   form.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
-
     const t = e.target;
     const tag = (t?.tagName || '').toUpperCase();
     const type = (t?.type || '').toLowerCase();
-
-    // Permitimos Enter en textareas o elementos marcados explícitamente
     const esTextArea = tag === 'TEXTAREA';
     const enterPermitido = t?.dataset?.enterOk === '1';
-
-    // Si es el botón Guardar y se presiona Enter sobre el botón, dejamos que haga click
     const esSubmitButton = (tag === 'BUTTON' && type === 'submit');
-
     if (!esTextArea && !enterPermitido && !esSubmitButton) {
-      e.preventDefault(); // evita que el Enter dispare el submit del form
+      e.preventDefault();
     }
   });
 }
@@ -484,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fecha hoy y cálculo de retiro
   cargarFechaHoy();
 
-  // NUEVO: radios → select si la pantalla es chica (ahorra espacio en tablet)
+  // Radios → select si la pantalla es chica
   initEntregaResponsive();
 
   // Listeners para recalcular retiro
@@ -499,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Totales
   setupCalculos();
 
-  // Historial (auto: últimos 15)
+  // Historial
   initHistorialUI();
 
   // Teléfono → Nº de trabajo
@@ -524,7 +509,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if(nAr){
     const doAr = async () => {
       await buscarArmazonPorNumero(nAr, detAr, prAr);
-      // forzar recálculo de totales cuando vuelve el precio
       if (prAr) { prAr.dispatchEvent(new Event('input', { bubbles:true })); }
       if (typeof window.__updateTotals === 'function') window.__updateTotals();
     };
@@ -552,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Guardar
   const form=$('formulario');
 
-  // 🔒 Bloquear submit con Enter — solo se guarda al hacer click en el botón Guardar
+  // Bloquear submit con Enter — solo se guarda al hacer click
   bloquearSubmitConEnter(form);
 
   if(form){
@@ -564,21 +548,8 @@ document.addEventListener('DOMContentLoaded', () => {
       progress.autoAdvance(6000);
 
       try{
-        await guardarTrabajo({ progress });  // que NO dispare Swal por adentro
-await progress.doneAndHide(0);       // escondé overlay ya mismo
-setTimeout(() => {
-  if (window.Swal) {
-    Swal.fire({
-      icon: 'success',
-      title: 'Guardado y PDF enviado',
-      text: '¿Imprimir ahora?',
-      showCancelButton: true,
-      confirmButtonText: 'Imprimir',
-      cancelButtonText: 'Cerrar'
-    }).then(r => { if (r.isConfirmed) window.print(); });
-  }
-}, 30); // pequeño delay para asegurarnos que el overlay ya se ocultó
-
+        await guardarTrabajo({ progress });
+        progress.doneAndHide(800);
       } catch (err){
         console.error(err);
         progress.fail(err?.message || 'Error al guardar');

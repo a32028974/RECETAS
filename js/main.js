@@ -201,8 +201,7 @@ function validarEjesRequeridos(){
   return ok1 && ok2;
 }
 
-// --- selects (definitivo, sin placeholders ni función "fill" fantasma)
-function setupGraduacionesSelects() {
+// --- selects function setupGraduacionesSelects() {
   const addOpt = (sel, val, label) => {
     const o = document.createElement('option');
     o.value = val;
@@ -212,41 +211,43 @@ function setupGraduacionesSelects() {
 
   const fmt = (v, showSign) => {
     let txt = Math.abs(v) < 1e-9 ? '0.00' : v.toFixed(2);
-    if (showSign && v > 0) txt = '+' + txt;
+    if (showSign && v > 0) txt = '+' + txt;  // 0 sin signo
     return txt;
   };
 
-  const fillZeroFirst = (sel, from, to, step, showSign = false) => {
+  // Rellena: 0, +0.25 … +max, -0.25 … -max
+  const fillZeroFirst = (sel, maxAbs, step, showSign = false) => {
     if (!sel || sel.tagName !== 'SELECT') return;
     sel.innerHTML = '';
 
-    const stepAbs = Math.abs(step);
-    const upper   = Math.max(from, to);
-    const lower   = Math.min(from, to);
-
     addOpt(sel, '0.00', '0.00');
-    for (let v = 0 + stepAbs; v <= upper + 1e-9; v += stepAbs) {
+    for (let v = step; v <= maxAbs + 1e-9; v += step) {
       const val = +v.toFixed(2);
-      addOpt(sel, fmt(val, showSign), fmt(val, showSign));
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // positivos arriba
     }
-    for (let v = -stepAbs; v >= lower - 1e-9; v -= stepAbs) {
+    for (let v = -step; v >= -maxAbs - 1e-9; v -= step) {
       const val = +v.toFixed(2);
-      addOpt(sel, fmt(val, showSign), fmt(val, showSign));
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // negativos abajo
     }
     sel.value = '0.00';
   };
 
-  fillZeroFirst(document.getElementById('od_esf'), -30, 20, 0.25, true);
-  fillZeroFirst(document.getElementById('oi_esf'), -30, 20, 0.25, true);
-  fillZeroFirst(document.getElementById('od_cil'), 0, -8, -0.25, false);
-  fillZeroFirst(document.getElementById('oi_cil'), 0, -8, -0.25, false);
+  // ESF: ±30 (0.25), con signo
+  fillZeroFirst(document.getElementById('od_esf'), 30, 0.25, true);
+  fillZeroFirst(document.getElementById('oi_esf'), 30, 0.25, true);
 
+  // CIL: ±8 (0.25), con signo  ← ANTES solo negativos
+  fillZeroFirst(document.getElementById('od_cil'), 8, 0.25, true);
+  fillZeroFirst(document.getElementById('oi_cil'), 8, 0.25, true);
+
+  // Si cambia CIL, validamos si EJE es requerido
   [['od_cil','od_eje'], ['oi_cil','oi_eje']].forEach(([cilId, ejeId]) => {
     const cil = document.getElementById(cilId);
     const eje = document.getElementById(ejeId);
     if (cil && eje) cil.addEventListener('change', () => checkEjeRequerido(cil, eje));
   });
 }
+
 
 // --- inputs tipo "grad"
 function setupGraduacionesInputs(){

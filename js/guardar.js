@@ -30,6 +30,11 @@ function fotosBase64() {
 
 function resumenPack() {
   const money = (v) => (v ? `$ ${v}` : "");
+
+  // texto visible del select (ej. "Laboratorio (15 días)")
+  const sel = document.getElementById('entrega-select');
+  const entregaLabel = sel?.options[sel.selectedIndex]?.text || entregaTxt();
+
   return {
     "Fecha": V("fecha"),
     "Retira (estimada)": V("fecha_retira"),
@@ -38,21 +43,29 @@ function resumenPack() {
     "Cliente": V("nombre"),
     "Teléfono": V("telefono"),
     "DR (oculista)": V("dr"),
+
     "Cristal": `${V("cristal")} ${money(V("precio_cristal"))}`,
+    "Obra social": `${V("obra_social")} ${money(V("importe_obra_social"))}`, // NUEVO
     "Armazón": `${V("numero_armazon")} ${V("armazon_detalle")} ${money(V("precio_armazon"))}`,
     "Otro": `${V("otro_concepto")} ${money(V("precio_otro"))}`,
+
+    "Distancia focal": V("distancia_focal"),                                  // NUEVO
+
     "OD": `ESF ${V("od_esf")}  |  CIL ${V("od_cil")}  |  EJE ${V("od_eje")}`,
     "OI": `ESF ${V("oi_esf")}  |  CIL ${V("oi_cil")}  |  EJE ${V("oi_eje")}`,
     "DNP (OD/OI)": V("dnp"),
     "ADD": V("add"),
+
     "TOTAL": money(V("total")),
     "SEÑA": money(V("sena")),
     "SALDO": money(V("saldo")),
+
     "Vendedor": V("vendedor"),
     "Forma de pago": V("forma_pago"),
-    "Entrega": entregaTxt()
+    "Entrega": entregaLabel
   };
 }
+
 
 /* ===== Flujo principal ===== */
 // 👉 acepta { progress } y marca cada paso

@@ -8,13 +8,13 @@
   <meta name="theme-color" content="#111827" />
   <link rel="icon" type="image/png" href="logo.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="estilos.css?v=2" />
+  <link rel="stylesheet" href="estilos.css?v=3" />
 
   <!-- Notificaciones -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-  <!-- Overlay de carga (clases definidas en estilos.css) -->
+  <!-- Overlay de carga -->
   <div id="spinner" class="spinner no-print" aria-hidden="true" hidden>
     <div class="loader"></div>
     <div class="spinner-text">Cargando…</div>
@@ -34,7 +34,6 @@
         <div class="row" style="grid-template-columns:minmax(200px, 280px);">
           <div>
             <label for="numero_trabajo">Número de trabajo</label>
-            <!-- Campo visible en el header PERO enviado con el form gracias a form="formulario" -->
             <input id="numero_trabajo" name="numero_trabajo" form="formulario"
                    inputmode="numeric" autocomplete="off" />
           </div>
@@ -44,11 +43,12 @@
 
     <!-- Formulario principal -->
     <form id="formulario" class="grid two" autocomplete="off">
-      <!-- HIDDEN para link del PDF (lo completa guardar.js) -->
       <input type="hidden" id="pack_url" name="pdf" />
 
       <!-- Columna izquierda -->
       <section class="card grid" aria-label="Datos del trabajo">
+
+        <!-- Fecha / Modalidad (SELECT fijo) / Fecha que retira -->
         <div class="row cols-3">
           <div>
             <label for="fecha">Fecha que encarga</label>
@@ -56,12 +56,12 @@
           </div>
 
           <div>
-            <label class="small">Modalidad de entrega</label>
-            <div class="seg" role="radiogroup" aria-label="Entrega">
-              <label><input type="radio" name="entrega" value="7" checked /> Stock (7 días)</label>
-              <label><input type="radio" name="entrega" value="3" /> Urgente (3 días)</label>
-              <label><input type="radio" name="entrega" value="15" /> Laboratorio (15 días)</label>
-            </div>
+            <label for="entrega-select" class="small">Modalidad de entrega</label>
+            <select id="entrega-select" name="entrega">
+              <option value="7" selected>Stock (7 días)</option>
+              <option value="3">Urgente (3 días)</option>
+              <option value="15">Laboratorio (15 días)</option>
+            </select>
           </div>
 
           <div>
@@ -235,7 +235,7 @@
         </section>
       </aside>
 
-      <!-- Historial: lo movemos a ANCHO COMPLETO debajo del formulario -->
+      <!-- Historial -->
       <section class="card" id="hist-card" style="grid-column:1 / -1; margin-top:12px;">
         <h3 style="margin:0 0 8px 0; font-size:16px;">Historial</h3>
         <div class="row cols-3">
@@ -248,7 +248,7 @@
     </form>
   </div>
 
-  <!-- Modal de cámara (lo maneja fotoPack.js si lo usás) -->
+  <!-- Modal de cámara -->
   <div id="cam-modal" class="cam-modal" hidden>
     <div class="cam-dialog">
       <div class="cam-head">
@@ -267,7 +267,7 @@
     </div>
   </div>
 
-  <!-- JS: un solo módulo que orquesta todo -->
+  <!-- JS -->
   <script type="module" src="./js/main.js?v=12"></script>
 </body>
 </html>

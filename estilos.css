@@ -8,6 +8,10 @@
   --brand:#1b64f2; --brand-600:#1857d3; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
   --radius:16px; --shadow:0 14px 40px rgba(0,0,0,.08);
   --gap:12px;
+
+  /* Proporciones para desktop (editables) */
+  --col3-prop: 1fr 1fr 1fr;      /* .row.cols-3 en PC (≥1400px) */
+  --col4-prop: 2fr 1fr 1fr 1fr;  /* .row.cols-4 en PC (≥1400px) */
 }
 
 *{ box-sizing:border-box; }
@@ -38,18 +42,55 @@ h1{ margin:0; font-size:clamp(18px,2.2vw,22px); }
 .grid{ display:grid; gap:var(--gap); }
 .grid.two{ grid-template-columns: 1fr; }
 .row{ display:grid; gap:var(--gap); }
-.row.cols-2 {
-  display: grid;
-  grid-template-columns: 4fr 1fr;
+
+/* 4/5 + 1/5 robusto (evita saltos con minmax) */
+.row.cols-2{
+  display:grid;
+  grid-template-columns: minmax(0,4fr) minmax(0,1fr);
   gap: var(--gap);
-  align-items: center;
+  align-items:center;
+}
+/* Evitar desbordes dentro de la fila 4/5 + 1/5 */
+.row.cols-2 input,
+.row.cols-2 select,
+.row.cols-2 textarea{
+  max-width:100%;
+  box-sizing:border-box;
 }
 
+/* Una sola columna a ancho completo (nuevo renglón Obras sociales) */
+.row.cols-1{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: var(--gap);
+}
+
+/* Base para 3 y 4 columnas (tablet/móvil) */
 .row.cols-3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
 .row.cols-4{ grid-template-columns: repeat(4, minmax(0,1fr)); }
 
+/* Desktop grande (solo PC) — proporciones editables por variables */
+@media (min-width: 1400px){
+  .row.cols-3{
+    grid-template-columns: var(--col3-prop);
+    column-gap: var(--gap);
+    align-items:center;
+  }
+  .row.cols-4{
+    grid-template-columns: var(--col4-prop);
+    column-gap: var(--gap);
+    align-items:center;
+  }
+}
+
+/* Breakpoint tablet que ya tenías */
 @media (min-width: 880px){
   .grid.two{ grid-template-columns: 1.2fr .8fr; align-items:start; }
+}
+
+/* (Opcional) En móvil chico apilar la 4/5 + 1/5 si querés */
+@media (max-width: 600px){
+  .row.cols-2{ grid-template-columns: 1fr; }
 }
 
 /* ========== Formularios ========== */
@@ -221,10 +262,7 @@ section[aria-label="Datos del trabajo"] .row.cols-3:first-child .seg label{
   white-space: nowrap;
   padding: 10px 12px;
 }
-/* Importante: sin media-query que apile esas 3 celdas */
 /* ===== Tablet tuning para "Fecha / Modalidad / Fecha que retira" ===== */
-
-/* En esta fila mantenemos 3 columnas, pero damos más aire al date */
 @media (max-width: 1400px){
   section[aria-label="Datos del trabajo"] .row.cols-3:first-child{
     grid-template-columns: 1.1fr 0.8fr 1.1fr; /* fecha — modalidad — fecha */
@@ -290,4 +328,3 @@ input[type="date"]::-webkit-calendar-picker-indicator{
     grid-template-columns: 1fr;
   }
 }
-

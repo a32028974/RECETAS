@@ -318,10 +318,6 @@ function resetGraduaciones() {
 // =========================================================================
 // Dinero / Totales
 // =========================================================================
-function parseMoney(v){
-  const n = parseFloat(String(v).replace(/[^\d.-]/g, ''));
-  return isNaN(n) ? 0 : n;
-}
 function sanitizePrice(el){ el.value = el.value.replace(/[^\d]/g,''); }
 function parseMoney(v){
   const n = parseFloat(String(v).replace(/[^\d.-]/g, ''));

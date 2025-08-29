@@ -38,7 +38,10 @@ h1{ margin:0; font-size:clamp(18px,2.2vw,22px); }
 .grid{ display:grid; gap:var(--gap); }
 .grid.two{ grid-template-columns: 1fr; }
 .row{ display:grid; gap:var(--gap); }
-.row.cols-2{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+.row.cols-2{ display: 
+            grid-template-columns: 2fr 1fr;
+           gap: var(--gap);
+           }
 .row.cols-3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
 .row.cols-4{ grid-template-columns: repeat(4, minmax(0,1fr)); }
 

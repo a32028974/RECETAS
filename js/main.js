@@ -1,4 +1,4 @@
-// /RECETAS/js/main.js — v2025-08-28.2
+// /RECETAS/js/main.js — v2025-08-28.3
 // UI general + progreso + cámara + búsquedas + totales + graduaciones + historial
 
 // ===== Imports =====
@@ -138,7 +138,7 @@ const generarNumeroTrabajoDesdeTelefono = () => {
 };
 
 // =========================================================================
-// Graduaciones (EJE + inputs y/o selects para ESF/CIL)
+/** Graduaciones (EJE + inputs y/o selects para ESF/CIL) */
 // =========================================================================
 function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
 function snapToStep(n, step){ return Math.round(n / step) * step; }
@@ -154,6 +154,7 @@ function sanitizeGradual(el, allowSigns = true){
   el.value = v;
 }
 function validateGradual(el){
+  // defaults seguros si faltan data-*
   if (!el.dataset.step) {
     if (el.classList.contains('grad-add')) { el.dataset.min = '0'; el.dataset.max = '4'; el.dataset.step = '0.25'; }
     else                                   { el.dataset.min = '-30'; el.dataset.max = '20'; el.dataset.step = '0.25'; }
@@ -213,22 +214,23 @@ function setupGraduacionesSelects() {
 
   const fmt = (v, showSign) => {
     let txt = Math.abs(v) < 1e-9 ? '0.00' : v.toFixed(2);
-    if (showSign && v > 0) txt = '+' + txt;
+    if (showSign && v > 0) txt = '+' + txt;  // 0 sin signo
     return txt;
   };
 
+  // Orden visual: +max…+0.25, 0.00, −0.25…−max
   const fillCentered = (sel, maxAbs, step, showSign = false) => {
     if (!sel || sel.tagName !== 'SELECT') return;
     sel.innerHTML = '';
 
     for (let v = maxAbs; v >= step - 1e-9; v -= step) {
       const val = +v.toFixed(2);
-      addOpt(sel, fmt(val, showSign), fmt(val, showSign));
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // positivos arriba
     }
-    addOpt(sel, '0.00', '0.00');
+    addOpt(sel, '0.00', '0.00');                                // cero al medio
     for (let v = -step; v >= -maxAbs - 1e-9; v -= step) {
       const val = +v.toFixed(2);
-      addOpt(sel, fmt(val, showSign), fmt(val, showSign));
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // negativos abajo
     }
     sel.value = '0.00';
   };
@@ -253,6 +255,7 @@ function setupGraduacionesSelects() {
 function setupGraduacionesInputs(){
   document.querySelectorAll('input.grad').forEach(el=>{
     const isAdd = el.classList.contains('grad-add');
+    // defaults por si faltan data-*
     if (!el.dataset.step) {
       if (isAdd) { el.dataset.min = '0'; el.dataset.max = '4'; el.dataset.step = '0.25'; }
       else       { el.dataset.min = '-30'; el.dataset.max = '20'; el.dataset.step = '0.25'; }
@@ -281,6 +284,34 @@ function setupGraduacionesInputs(){
     cil.addEventListener('input', h);
     cil.addEventListener('blur',  h);
   });
+}
+
+// =========================================================================
+// Reset graduaciones (para botón Limpiar)
+// =========================================================================
+function resetGraduaciones() {
+  // Selects ESF/CIL → "0.00"
+  ['od_esf','oi_esf','od_cil','oi_cil'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const candidatos = ['0.00', '+0.00', '0'];
+    let seteado = false;
+    for (const v of candidatos) {
+      if ([...sel.options].some(o => o.value === v)) {
+        sel.value = v;
+        seteado = true;
+        break;
+      }
+    }
+    if (!seteado) {
+      // fallback: buscar un option que represente 0
+      const idx0 = [...sel.options].findIndex(o => /(^\+?0(\.0+)?$)/.test(o.value));
+      sel.selectedIndex = idx0 >= 0 ? idx0 : 0;
+    }
+  });
+
+  // EJE → vacío
+  ['od_eje','oi_eje'].forEach(id => { const inp = document.getElementById(id); if (inp) inp.value = ''; });
 }
 
 // =========================================================================
@@ -356,6 +387,7 @@ function setupCalculos(){
     if (sal) sal.value = String(saldo);
   }
 
+  // expongo para forzar recálculo cuando llenamos precio desde armazón
   window.__updateTotals = updateTotals;
 
   [pc, pa, po, se].forEach(el=>{
@@ -434,10 +466,23 @@ function initHistorialUI() {
 function buildPrintArea(){ try{ (window.__buildPrintArea||(()=>{}))(); }catch{} setTimeout(()=>window.print(),0); }
 function limpiarFormulario(){
   const form=$('formulario'); if(!form) return;
-  form.reset(); cargarFechaHoy();
+
+  // reset del form
+  form.reset();
+
+  // 🔁 volver ESF/CIL a 0.00 y EJE vacío
+  resetGraduaciones();
+
+  // fecha hoy y retiro estimado
+  cargarFechaHoy();
+  recalcularFechaRetiro();
+
+  // limpiar fotos
   const gal=$('galeria-fotos'); if(gal) gal.innerHTML='';
   if (Array.isArray(window.__FOTOS)) window.__FOTOS.length = 0;
-  recalcularFechaRetiro();
+
+  // recalcular totales visibles
+  if (typeof window.__updateTotals === 'function') window.__updateTotals();
 }
 
 // =========================================================================
@@ -460,7 +505,7 @@ function bloquearSubmitConEnter(form){
 }
 
 // =========================================================================
-// INIT
+/** INIT */
 // =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   // Cámara + Galería
@@ -509,6 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(nAr){
     const doAr = async () => {
       await buscarArmazonPorNumero(nAr, detAr, prAr);
+      // forzar recálculo de totales cuando vuelve el precio
       if (prAr) { prAr.dispatchEvent(new Event('input', { bubbles:true })); }
       if (typeof window.__updateTotals === 'function') window.__updateTotals();
     };

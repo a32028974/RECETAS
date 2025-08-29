@@ -1,6 +1,6 @@
 // js/api.js
 // 1) ENDPOINT GENERAL (DNI, ARMAZÓN, HISTORIAL, setPdf)
-export const API_URL  = "https://script.google.com/macros/s/AKfycbxtUMUYeLq1Afiy1Mn9vXSsiL01nh0xM-7oALt_wd3do3LmCWt4k-NYE-tXVBA2Yn5rLA/exec";
+export const API_URL  = "https://script.google.com/macros/s/AKfycbypePgdIezd-t_ECpsnXa9fclbZDpcQEV791g_-NBttUp_dqa2e62nU7GcZwWBgkQJtrw/exec";
 
 // 2) ENDPOINT DE PACK/TELEGRAM (el tuyo que ya funcionaba)
 export const PACK_URL = "https://script.google.com/macros/s/AKfycbyAc51qga-xnN3319jcVmAWwz7NTlNH-Lht3IwRIt8PT0MAy_ZKpcGJiohQZIFPfIONsA/exec";

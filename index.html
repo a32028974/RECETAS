@@ -100,16 +100,21 @@
         </div>
 
         <!-- NUEVO RENGLÓN: OBRAS SOCIALES -->
-        <div class="row cols-1">
-          <div>
-            <label for="obra_social">Obra social</label>
-            <input id="obra_social" name="obra_social" placeholder="Ej: OSDE, Sancor, Maquinistas Navales, APSOT..." />
-          </div>
-          <div>
-            <label for="importe_obra_social">Obra social</label>
-            <div class="money"><input id="importe_obra_social" name="importe_obra_social" inputmode="numeric" /></div>
-          </div>
-        </div>
+        <!-- OBRAS SOCIALES -->
+<div class="row cols-2">
+  <div>
+    <label for="obra_social">Obra social</label>
+    <input id="obra_social" name="obra_social" placeholder="Ej: OSDE, Sancor, IOMA…" />
+  </div>
+
+  <div>
+    <label for="importe_obra_social">Precio obra social</label>
+    <div class="money">
+      <input id="importe_obra_social" name="importe_obra_social" inputmode="numeric" />
+    </div>
+  </div>
+</div>
+
 
         <!-- OD -->
         <div class="row cols-4">
@@ -125,6 +130,19 @@
             <label for="od_eje">OD EJE (0–180)</label>
             <input id="od_eje" name="od_eje" inputmode="numeric" placeholder="EJE" />
           </div>
+          <div>
+    <label for="distancia_focal">Distancia focal</label>
+    <select id="distancia_focal" name="distancia_focal">
+      <option>Monofocal Lejos</option>
+      <option>Monofocal Cerca</option>
+      <option>Bifocal</option>
+      <option>Multifocal</option>
+      <option>Ocupacional</option>
+      <option>Monofocal Intermedia</option>
+      <option>Sobre LC</option>
+    </select>
+  </div>
+</div>
         </div>
 
         <!-- OI -->

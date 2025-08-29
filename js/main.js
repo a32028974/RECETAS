@@ -1,4 +1,4 @@
-// /RECETAS/js/main.js — v2025-08-28.3
+// /RECETAS/js/main.js — v2025-08-28.4
 // UI general + progreso + cámara + búsquedas + totales + graduaciones + historial
 
 // ===== Imports =====
@@ -112,20 +112,29 @@ function parseFechaDDMMYY(str){
   if(!str) return new Date();
   const [d,m,a] = str.split('/');
   const dd = parseInt(d||'0',10), mm = parseInt(m||'1',10);
-  let yy = parseInt(a||'0',10); if ((a||'').length===2) yy = 2000 + yy;
+  let yy = parseInt(a||'0',10);
+  if ((a||'').length===2) yy = 2000 + yy;
   return new Date(yy, mm-1, dd);
 }
 function fmtISO(d){
   const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), da=String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${da}`;
 }
-function sumarDias(base, dias){ const d=new Date(base.getTime()); d.setDate(d.getDate() + (parseInt(dias,10)||0)); return d; }
+function sumarDias(base, dias){
+  const d=new Date(base.getTime());
+  d.setDate(d.getDate() + (parseInt(dias,10)||0));
+  return d;
+}
+/** AHORA leemos SIEMPRE el SELECT #entrega-select */
 function recalcularFechaRetiro(){
-  const enc = $('fecha'), out = $('fecha_retira'); if(!enc || !out) return;
-  const radio = document.querySelector("input[name='entrega']:checked");
-  const base = parseFechaDDMMYY(enc.value);
-  const dias = radio?.value ? parseInt(radio.value,10) : 7;
-  out.value = fmtISO(sumarDias(base, dias));
+  const enc = $('fecha');
+  const out = $('fecha_retira');
+  const sel = $('entrega-select'); // <- select fijo
+  if (!enc || !out || !sel) return;
+
+  const base = parseFechaDDMMYY(enc.value || '');
+  const dias = parseInt(sel.value, 10) || 0; // 7, 3, 15
+  out.value = fmtISO(sumarDias(base, dias)); // <input type="date">
 }
 
 // =========================================================================
@@ -154,7 +163,6 @@ function sanitizeGradual(el, allowSigns = true){
   el.value = v;
 }
 function validateGradual(el){
-  // defaults seguros si faltan data-*
   if (!el.dataset.step) {
     if (el.classList.contains('grad-add')) { el.dataset.min = '0'; el.dataset.max = '4'; el.dataset.step = '0.25'; }
     else                                   { el.dataset.min = '-30'; el.dataset.max = '20'; el.dataset.step = '0.25'; }
@@ -214,23 +222,21 @@ function setupGraduacionesSelects() {
 
   const fmt = (v, showSign) => {
     let txt = Math.abs(v) < 1e-9 ? '0.00' : v.toFixed(2);
-    if (showSign && v > 0) txt = '+' + txt;  // 0 sin signo
+    if (showSign && v > 0) txt = '+' + txt;
     return txt;
   };
 
-  // Orden visual: +max…+0.25, 0.00, −0.25…−max
   const fillCentered = (sel, maxAbs, step, showSign = false) => {
     if (!sel || sel.tagName !== 'SELECT') return;
     sel.innerHTML = '';
-
     for (let v = maxAbs; v >= step - 1e-9; v -= step) {
       const val = +v.toFixed(2);
-      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // positivos arriba
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));
     }
-    addOpt(sel, '0.00', '0.00');                                // cero al medio
+    addOpt(sel, '0.00', '0.00');
     for (let v = -step; v >= -maxAbs - 1e-9; v -= step) {
       const val = +v.toFixed(2);
-      addOpt(sel, fmt(val, showSign), fmt(val, showSign));      // negativos abajo
+      addOpt(sel, fmt(val, showSign), fmt(val, showSign));
     }
     sel.value = '0.00';
   };
@@ -243,7 +249,7 @@ function setupGraduacionesSelects() {
   fillCentered(document.getElementById('od_cil'), 8, 0.25, true);
   fillCentered(document.getElementById('oi_cil'), 8, 0.25, true);
 
-  // Si cambia CIL, validar si EJE es requerido
+  // validar EJE cuando cambia CIL
   [['od_cil','od_eje'], ['oi_cil','oi_eje']].forEach(([cilId, ejeId]) => {
     const cil = document.getElementById(cilId);
     const eje = document.getElementById(ejeId);
@@ -255,7 +261,6 @@ function setupGraduacionesSelects() {
 function setupGraduacionesInputs(){
   document.querySelectorAll('input.grad').forEach(el=>{
     const isAdd = el.classList.contains('grad-add');
-    // defaults por si faltan data-*
     if (!el.dataset.step) {
       if (isAdd) { el.dataset.min = '0'; el.dataset.max = '4'; el.dataset.step = '0.25'; }
       else       { el.dataset.min = '-30'; el.dataset.max = '20'; el.dataset.step = '0.25'; }
@@ -287,10 +292,9 @@ function setupGraduacionesInputs(){
 }
 
 // =========================================================================
-// Reset graduaciones (para botón Limpiar)
+// Reset graduaciones
 // =========================================================================
 function resetGraduaciones() {
-  // Selects ESF/CIL → "0.00"
   ['od_esf','oi_esf','od_cil','oi_cil'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -304,64 +308,11 @@ function resetGraduaciones() {
       }
     }
     if (!seteado) {
-      // fallback: buscar un option que represente 0
       const idx0 = [...sel.options].findIndex(o => /(^\+?0(\.0+)?$)/.test(o.value));
       sel.selectedIndex = idx0 >= 0 ? idx0 : 0;
     }
   });
-
-  // EJE → vacío
   ['od_eje','oi_eje'].forEach(id => { const inp = document.getElementById(id); if (inp) inp.value = ''; });
-}
-
-// =========================================================================
-// Modalidad de entrega RESPONSIVE: radios → <select> en pantallas chicas
-// =========================================================================
-function initEntregaResponsive() {
-  const seg = document.querySelector('.seg input[name="entrega"]')?.closest('.seg');
-  const radios = Array.from(document.querySelectorAll("input[name='entrega']"));
-  if (!seg || radios.length === 0) return;
-
-  let select = null;
-
-  const buildSelect = () => {
-    if (select) return select;
-    select = document.createElement('select');
-    select.id = 'entrega-select';
-    select.innerHTML = `
-      <option value="7">Stock (7 días)</option>
-      <option value="3">Urgente (3 días)</option>
-      <option value="15">Laboratorio (15 días)</option>
-    `;
-    const checked = radios.find(r => r.checked)?.value || '7';
-    select.value = checked;
-
-    select.addEventListener('change', () => {
-      radios.forEach(r => { r.checked = (r.value === select.value); });
-      try { recalcularFechaRetiro(); } catch {}
-    });
-
-    return select;
-  };
-
-  const toSelect = () => {
-    if (select && select.parentNode) return;
-    seg.style.display = 'none';
-    seg.insertAdjacentElement('afterend', buildSelect());
-  };
-
-  const toRadios = () => {
-    seg.style.display = '';
-    if (select && select.parentNode) {
-      select.parentNode.removeChild(select);
-      select = null;
-    }
-  };
-
-  // < 1200px → select ; >= 1200px → radios
-  const applyMode = () => (window.innerWidth < 1200 ? toSelect() : toRadios());
-  applyMode();
-  window.addEventListener('resize', applyMode);
 }
 
 // =========================================================================
@@ -386,8 +337,6 @@ function setupCalculos(){
     const saldo = total - parseMoney(se?.value);
     if (sal) sal.value = String(saldo);
   }
-
-  // expongo para forzar recálculo cuando llenamos precio desde armazón
   window.__updateTotals = updateTotals;
 
   [pc, pa, po, se].forEach(el=>{
@@ -399,7 +348,7 @@ function setupCalculos(){
 }
 
 // =========================================================================
-// Historial
+/** Historial */
 // =========================================================================
 function renderHistorial(items = []) {
   const host = $('historial');
@@ -467,21 +416,14 @@ function buildPrintArea(){ try{ (window.__buildPrintArea||(()=>{}))(); }catch{} 
 function limpiarFormulario(){
   const form=$('formulario'); if(!form) return;
 
-  // reset del form
   form.reset();
-
-  // 🔁 volver ESF/CIL a 0.00 y EJE vacío
   resetGraduaciones();
-
-  // fecha hoy y retiro estimado
   cargarFechaHoy();
   recalcularFechaRetiro();
 
-  // limpiar fotos
   const gal=$('galeria-fotos'); if(gal) gal.innerHTML='';
   if (Array.isArray(window.__FOTOS)) window.__FOTOS.length = 0;
 
-  // recalcular totales visibles
   if (typeof window.__updateTotals === 'function') window.__updateTotals();
 }
 
@@ -514,12 +456,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fecha hoy y cálculo de retiro
   cargarFechaHoy();
 
-  // Radios → select si la pantalla es chica
-  initEntregaResponsive();
-
-  // Listeners para recalcular retiro
-  $$("input[name='entrega']").forEach(r => r.addEventListener('change', recalcularFechaRetiro));
-  const fechaEnc = $('fecha'); if(fechaEnc) fechaEnc.addEventListener('change', recalcularFechaRetiro);
+  // Listeners para recalcular retiro (SELECT fijo + fecha)
+  const entregaSel = $('entrega-select');
+  if (entregaSel) entregaSel.addEventListener('change', recalcularFechaRetiro);
+  const fechaEnc = $('fecha');
+  if (fechaEnc) {
+    fechaEnc.addEventListener('change', recalcularFechaRetiro);
+    fechaEnc.addEventListener('blur',   recalcularFechaRetiro);
+  }
+  // primer cálculo
   recalcularFechaRetiro();
 
   // Graduaciones
@@ -554,7 +499,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if(nAr){
     const doAr = async () => {
       await buscarArmazonPorNumero(nAr, detAr, prAr);
-      // forzar recálculo de totales cuando vuelve el precio
       if (prAr) { prAr.dispatchEvent(new Event('input', { bubbles:true })); }
       if (typeof window.__updateTotals === 'function') window.__updateTotals();
     };
@@ -582,7 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Guardar
   const form=$('formulario');
 
-  // Bloquear submit con Enter — solo se guarda al hacer click
+  // Bloquear submit con Enter — solo click guarda
   bloquearSubmitConEnter(form);
 
   if(form){

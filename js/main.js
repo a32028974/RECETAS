@@ -323,29 +323,43 @@ function parseMoney(v){
   return isNaN(n) ? 0 : n;
 }
 function sanitizePrice(el){ el.value = el.value.replace(/[^\d]/g,''); }
+function parseMoney(v){
+  const n = parseFloat(String(v).replace(/[^\d.-]/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+function sanitizePrice(el){ el.value = el.value.replace(/[^\d]/g,''); }
+
 function setupCalculos(){
   const pc = $('precio_cristal');
   const pa = $('precio_armazon');
   const po = $('precio_otro');
+  const os = $('importe_obra_social');   // <- NUEVO
   const se = $('sena');
   const tot = $('total');
   const sal = $('saldo');
 
   function updateTotals(){
-    const total = parseMoney(pc?.value) + parseMoney(pa?.value) + parseMoney(po?.value);
-    if (tot) tot.value = String(total);
-    const saldo = total - parseMoney(se?.value);
+    const bruto        = parseMoney(pc?.value) + parseMoney(pa?.value) + parseMoney(po?.value);
+    const descObra     = parseMoney(os?.value);     // cobertura OS
+    const totalCliente = Math.max(0, bruto - descObra);
+    if (tot) tot.value = String(totalCliente);
+
+    const saldo = Math.max(0, totalCliente - parseMoney(se?.value));
     if (sal) sal.value = String(saldo);
   }
+
+  // expongo para otros módulos
   window.__updateTotals = updateTotals;
 
-  [pc, pa, po, se].forEach(el=>{
+  [pc, pa, po, os, se].forEach(el=>{
     if(!el) return;
     el.addEventListener('input', ()=>{ sanitizePrice(el); updateTotals(); });
     el.addEventListener('change', updateTotals);
   });
+
   updateTotals();
 }
+
 
 // =========================================================================
 /** Historial */

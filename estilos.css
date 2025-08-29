@@ -40,10 +40,11 @@ h1{ margin:0; font-size:clamp(18px,2.2vw,22px); }
 .row{ display:grid; gap:var(--gap); }
 .row.cols-2 {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-columns: 4fr 1fr;
   gap: var(--gap);
-  align-items: center; /* Opcional: alinea verticalmente */
+  align-items: center;
 }
+
 .row.cols-3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
 .row.cols-4{ grid-template-columns: repeat(4, minmax(0,1fr)); }
 

@@ -14,9 +14,14 @@ function syncNumeroTrabajoHidden() {
 }
 
 function entregaTxt() {
-  const r = document.querySelector("input[name='entrega']:checked");
-  return r?.value === "3" ? "URGENTE" : r?.value === "15" ? "LABORATORIO" : "NORMAL";
+  const sel = document.getElementById('entrega-select');
+  const v = sel?.value || '7';
+  // Texto simple para el PDF / notificación
+  if (v === '3')  return 'URGENTE';
+  if (v === '15') return 'LABORATORIO';
+  return 'STOCK';
 }
+
 
 function fotosBase64() {
   const a = Array.isArray(window.__FOTOS) ? window.__FOTOS : [];

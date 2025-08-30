@@ -319,6 +319,9 @@ function resetGraduaciones() {
 // =========================================================================
 // Dinero / Totales
 // =========================================================================
+// =========================================================================
+// Dinero / Totales
+// =========================================================================
 function setupCalculos(){
   const pc  = $('precio_cristal');
   const pa  = $('precio_armazon');
@@ -329,16 +332,18 @@ function setupCalculos(){
   const sal = $('saldo');
 
   function updateTotals(){
-    const bruto        = parseMoney(pc?.value) + parseMoney(pa?.value) + parseMoney(po?.value);
-    const descObra     = parseMoney(os?.value);
-    const totalCliente = Math.max(0, bruto - descObra);
-    if (tot) tot.value = String(totalCliente);
+    const bruto    = parseMoney(pc?.value) + parseMoney(pa?.value) + parseMoney(po?.value);
+    const senia    = parseMoney(se?.value);
+    const descObra = parseMoney(os?.value);
 
-    const saldo = Math.max(0, totalCliente - parseMoney(se?.value));
+    // TOTAL = BRUTO (sin descontar obra social)
+    if (tot) tot.value = String(Math.max(0, bruto));
+
+    // SALDO = BRUTO - SEÑA - OBRA SOCIAL
+    const saldo = Math.max(0, bruto - senia - descObra);
     if (sal) sal.value = String(saldo);
   }
 
-  // expongo para otros módulos
   window.__updateTotals = updateTotals;
 
   [pc, pa, po, os, se].forEach(el=>{
@@ -349,6 +354,7 @@ function setupCalculos(){
 
   updateTotals();
 }
+
 
 // =========================================================================
 /** Historial */

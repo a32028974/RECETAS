@@ -6,6 +6,13 @@ const $ = (id) => document.getElementById(id);
 const V = (id) => (document.getElementById(id)?.value ?? "").toString().trim();
 const U = (v) => (v ?? "").toString().trim().toUpperCase();
 
+function setNumeroTrabajo(n) {
+  const vis = $("numero_trabajo");
+  if (vis) vis.value = (n ?? "").toString().trim();
+  const hid = $("numero_trabajo_hidden");
+  if (hid) hid.value = (n ?? "").toString().trim();
+}
+
 function syncNumeroTrabajoHidden() {
   // Copia el visible (#numero_trabajo) al hidden (#numero_trabajo_hidden) dentro del <form> (si existiera)
   const vis = $("numero_trabajo");
@@ -14,22 +21,24 @@ function syncNumeroTrabajoHidden() {
 }
 
 function entregaTxt() {
-  const sel = document.getElementById('entrega-select');
-  const v = sel?.value || '7';
-  if (v === '3')  return 'URGENTE';
-  if (v === '15') return 'LABORATORIO';
-  return 'STOCK';
+  const sel = document.getElementById("entrega-select");
+  const v = sel?.value || "7";
+  if (v === "3") return "URGENTE";
+  if (v === "15") return "LABORATORIO";
+  return "STOCK";
 }
 
 function fotosBase64() {
   const a = Array.isArray(window.__FOTOS) ? window.__FOTOS : [];
-  return a.map(d => (d.split(",")[1] || "").trim()).filter(Boolean);
+  return a
+    .map((d) => (d.split(",")[1] || "").trim())
+    .filter(Boolean);
 }
 
 function resumenPack() {
   const money = (v) => (v ? `$ ${v}` : "");
 
-  const sel = document.getElementById('entrega-select');
+  const sel = document.getElementById("entrega-select");
   const entregaLabel = sel?.options[sel.selectedIndex]?.text || entregaTxt();
 
   return {
@@ -59,14 +68,16 @@ function resumenPack() {
 
     "Vendedor": V("vendedor"),
     "Forma de pago": V("forma_pago"),
-    "Entrega": entregaLabel
+    "Entrega": entregaLabel,
   };
 }
 
 /* ===== Flujo principal ===== */
 export async function guardarTrabajo({ progress } = {}) {
   const spinner = $("spinner");
-  const setStep = (label, status = "done") => { try { progress?.mark?.(label, status); } catch {} };
+  const setStep = (label, status = "done") => {
+    try { progress?.mark?.(label, status); } catch {}
+  };
 
   try {
     if (spinner) spinner.style.display = "block";
@@ -76,18 +87,18 @@ export async function guardarTrabajo({ progress } = {}) {
 
     // Validaciones mínimas
     setStep("Validando datos", "run");
-    const nro = V("numero_trabajo"); // visible para validar UX
-    if (!nro)       throw new Error("Ingresá el número de trabajo");
-    if (!V("dni"))  throw new Error("Ingresá el DNI");
+    const nroBase = V("numero_trabajo"); // visible para validar UX
+    if (!nroBase) throw new Error("Ingresá el número de trabajo");
+    if (!V("dni")) throw new Error("Ingresá el DNI");
     if (!V("nombre")) throw new Error("Ingresá el nombre");
     setStep("Validando datos", "done");
 
-    // 1) Guardar en planilla
+    // 1) Guardar en planilla (el backend asigna sufijo si corresponde)
     setStep("Guardando en planilla", "run");
     const formEl = $("formulario");
     if (!formEl) throw new Error("Formulario no encontrado");
 
-    // Armo el cuerpo con todo lo que esté DENTRO del <form> (incluye el hidden numero_trabajo si existiera)
+    // Cuerpo: todo lo que esté dentro del <form> (URL-encoded → e.parameter en Apps Script)
     const body = new URLSearchParams(new FormData(formEl));
 
     let postJson;
@@ -109,20 +120,26 @@ export async function guardarTrabajo({ progress } = {}) {
     }
     setStep("Guardando en planilla", "done");
 
+    // >>> Número final con sufijo que devolvió el backend (si aplicó)
+    const numeroFinal = (postJson && postJson.numero_trabajo) ? String(postJson.numero_trabajo).trim() : nroBase;
+
+    // Actualizo el campo visible + hidden para que todo el resto use el número FINAL
+    setNumeroTrabajo(numeroFinal);
+
     // 2) Generar PDF + Telegram (lo hace tu Apps Script PACK)
     setStep("Generando PDF", "run");
     const payload = {
-      numero_trabajo: nro,
+      numero_trabajo: numeroFinal,        // usar el FINAL con sufijo
       dni: V("dni"),
       nombre: U(V("nombre")),
       resumen: resumenPack(),
-      imagenesBase64: fotosBase64()
+      imagenesBase64: fotosBase64(),
     };
 
     const packRes = await fetch(PACK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body: new URLSearchParams({ genPack: "1", payload: JSON.stringify(payload) })
+      body: new URLSearchParams({ genPack: "1", payload: JSON.stringify(payload) }),
     });
     const raw = await packRes.text();
     if (!packRes.ok) throw new Error(`Error PACK (${packRes.status})`);
@@ -135,11 +152,11 @@ export async function guardarTrabajo({ progress } = {}) {
     const hidden = $("pack_url");
     if (hidden) hidden.value = packUrl;
 
-    // 2.c) Actualizar columna PDF (best-effort)
+    // 2.c) Actualizar columna PDF en la planilla (best-effort)
     if (packUrl) {
       setStep("Guardando link del PDF", "run");
       try {
-        const setUrl = withParams(API_URL, { setPdf: 1, numero: nro, url: packUrl });
+        const setUrl = withParams(API_URL, { setPdf: 1, numero: numeroFinal, url: packUrl });
         await apiGet(setUrl);
       } catch (e) {
         console.warn("No se pudo actualizar la columna PDF:", e?.message || e);
@@ -154,6 +171,7 @@ export async function guardarTrabajo({ progress } = {}) {
     try { progress?.doneAndHide?.(0); } catch {}
     if (spinner) spinner.style.display = "none";
 
+    // 4) Confirmación + imprimir
     if (window.Swal) {
       const r = await Swal.fire({
         title: "Guardado y PDF enviado",
@@ -161,12 +179,15 @@ export async function guardarTrabajo({ progress } = {}) {
         icon: "success",
         showCancelButton: true,
         confirmButtonText: "Imprimir",
-        cancelButtonText: "Cerrar"
+        cancelButtonText: "Cerrar",
       });
       if (r.isConfirmed) window.print();
     } else {
       if (confirm("Guardado y PDF enviado.\n¿Imprimir ahora?")) window.print();
     }
+
+    // Devuelvo info útil si alguien la usa
+    return { ok: true, numero_trabajo: numeroFinal, pdf: packUrl };
 
   } catch (err) {
     try { progress?.fail?.(err?.message || "Error al guardar"); } catch {}

@@ -1,4 +1,4 @@
-// /RECETAS/js/main.js — v2025-08-28.4
+// /RECETAS/js/main.js — v2025-08-28.5
 // UI general + progreso + cámara + búsquedas + totales + graduaciones + historial
 
 // ===== Imports =====
@@ -319,25 +319,18 @@ function resetGraduaciones() {
 // =========================================================================
 // Dinero / Totales
 // =========================================================================
-function sanitizePrice(el){ el.value = el.value.replace(/[^\d]/g,''); }
-function parseMoney(v){
-  const n = parseFloat(String(v).replace(/[^\d.-]/g, ''));
-  return isNaN(n) ? 0 : n;
-}
-function sanitizePrice(el){ el.value = el.value.replace(/[^\d]/g,''); }
-
 function setupCalculos(){
-  const pc = $('precio_cristal');
-  const pa = $('precio_armazon');
-  const po = $('precio_otro');
-  const os = $('importe_obra_social');   // <- NUEVO
-  const se = $('sena');
+  const pc  = $('precio_cristal');
+  const pa  = $('precio_armazon');
+  const po  = $('precio_otro');
+  const os  = $('importe_obra_social'); // cobertura OS
+  const se  = $('sena');
   const tot = $('total');
   const sal = $('saldo');
 
   function updateTotals(){
     const bruto        = parseMoney(pc?.value) + parseMoney(pa?.value) + parseMoney(po?.value);
-    const descObra     = parseMoney(os?.value);     // cobertura OS
+    const descObra     = parseMoney(os?.value);
     const totalCliente = Math.max(0, bruto - descObra);
     if (tot) tot.value = String(totalCliente);
 
@@ -356,7 +349,6 @@ function setupCalculos(){
 
   updateTotals();
 }
-
 
 // =========================================================================
 /** Historial */

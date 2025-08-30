@@ -22,7 +22,6 @@ function fotosBase64(){
 
 function resumenPack(){
   const money = v => (v ? `$ ${v}` : '');
-  // Incluyo los campos nuevos (obra social y distancia focal) para que el PDF quede alineado con guardar.js
   return {
     'Fecha': V('fecha'),
     'Retira (estimada)': V('fecha_retira'),
@@ -76,10 +75,10 @@ async function generarPack(){
       headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
       body: new URLSearchParams({ genPack: '1', payload: JSON.stringify(payload) })
     });
-    const raw = await res.text();
-    let ok = false, url = '';
-    try { const j = JSON.parse(raw); ok = !!j.ok; url = j.url || j.pdf || ''; } catch {}
 
+    const raw = await res.text();
+    let ok=false, url='';
+    try { const j = JSON.parse(raw); ok = !!j.ok; url = j.url || j.pdf || ''; } catch {}
     if (!ok || !url) throw new Error('No se pudo crear el PDF');
 
     const hidden = $('pack_url'); if (hidden) hidden.value = url;
@@ -104,7 +103,7 @@ async function generarPack(){
       if (confirm('PDF generado. ¿Abrir ahora?')) window.open(url, '_blank', 'noopener');
     }
 
-  } catch (err){
+  } catch(err){
     console.error(err);
     const msg = err?.message || 'Error inesperado';
     const p = document.getElementById('mensaje');

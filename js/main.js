@@ -278,7 +278,7 @@ function setupGraduacionesInputs(){
     if (!el) return;
     el.addEventListener('input', ()=>{
       sanitizeEje(el);
-      checkEjeRequerido(id==='od_eje' ? $('od_cil') : $('oi_cil'), el);
+      checkEjeRequerido(id==='od_eje' ? $('od_cil') : 'oi_cil', el);
     });
     el.addEventListener('blur',  ()=> validateEje(el));
   });

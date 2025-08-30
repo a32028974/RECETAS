@@ -2,7 +2,7 @@
 // UI general + progreso + cámara + búsquedas + totales + graduaciones + historial
 
 // ===== Imports =====
-import { sanitizePrice } from './utils.js';
+import { sanitizePrice, parseMoney } from './utils.js';
 import { obtenerNumeroTrabajoDesdeTelefono } from './numeroTrabajo.js';
 import { cargarFechaHoy } from './fechaHoy.js';
 import { buscarNombrePorDNI } from './buscarNombre.js';

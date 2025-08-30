@@ -1,62 +1,67 @@
 // js/generarPack.js
 // Genera el PDF (resumen + fotos) sin guardar la planilla.
-// Usa el mismo endpoint PACK_URL que usamos al guardar.
-
-const PACK_URL = "https://script.google.com/macros/s/AKfycbwt5zXhLvmq8y3F1--b_njEkpOgicI4clWbU1O1wjetVkRGS69tv59bo_tjJ8fHHPiAwQ/exec";
+import { PACK_URL } from './api.js';
 
 const $ = (id) => document.getElementById(id);
-const V = (id) => (document.getElementById(id)?.value ?? "").toString().trim();
-const U = (v) => (v ?? "").toString().trim().toUpperCase();
+const V = (id) => (document.getElementById(id)?.value ?? '').toString().trim();
+const U = (v)  => (v ?? '').toString().trim().toUpperCase();
 
 function entregaTxt() {
-  // name="entrega" con values: NORMAL | URGENTE | LABORATORIO
-  const r = document.querySelector("input[name='entrega']:checked");
-  const val = (r?.value || 'NORMAL').toUpperCase();
-  if (val === 'URGENTE') return 'URGENTE';
-  if (val === 'LABORATORIO') return 'LABORATORIO';
-  return 'NORMAL';
+  // Leemos el SELECT unificado (#entrega-select)
+  const sel = document.getElementById('entrega-select');
+  const v = sel?.value || '7';
+  if (v === '3')  return 'URGENTE';
+  if (v === '15') return 'LABORATORIO';
+  return 'STOCK';
 }
 
 function fotosBase64(){
-  // Usa el arreglo global que arma tu módulo de cámara (fotoPack.js)
   const a = Array.isArray(window.__FOTOS) ? window.__FOTOS : [];
-  return a.map(d => (d.split(",")[1] || "").trim()).filter(Boolean);
+  return a.map(d => (d.split(',')[1] || '').trim()).filter(Boolean);
 }
 
 function resumenPack(){
-  const money = v => (v ? `$ ${v}` : "");
+  const money = v => (v ? `$ ${v}` : '');
+  // Incluyo los campos nuevos (obra social y distancia focal) para que el PDF quede alineado con guardar.js
   return {
-    "Fecha": V("fecha"),
-    "Retira (estimada)": V("fecha_retira"),
-    "N° trabajo": V("numero_trabajo"),
-    "DNI": V("dni"),
-    "Cliente": V("nombre"),
-    "Teléfono": V("telefono"),
-    "DR (oculista)": V("dr"),
-    "Cristal": `${V("cristal")} ${money(V("precio_cristal"))}`,
-    "Armazón": `${V("numero_armazon")} ${V("armazon_detalle")} ${money(V("precio_armazon"))}`,
-    "Otro": `${V("otro_concepto")} ${money(V("precio_otro"))}`,
-    "OD": `ESF ${V("od_esf")}  |  CIL ${V("od_cil")}  |  EJE ${V("od_eje")}`,
-    "OI": `ESF ${V("oi_esf")}  |  CIL ${V("oi_cil")}  |  EJE ${V("oi_eje")}`,
-    "ADD": V("add"),
-    "TOTAL": money(V("total")),
-    "SEÑA": money(V("sena")),
-    "SALDO": money(V("saldo")),
-    "Vendedor": V("vendedor"),
-    "Forma de pago": V("forma_pago"),
-    "Entrega": entregaTxt()
+    'Fecha': V('fecha'),
+    'Retira (estimada)': V('fecha_retira'),
+    'N° trabajo': V('numero_trabajo'),
+    'DNI': V('dni'),
+    'Cliente': V('nombre'),
+    'Teléfono': V('telefono'),
+    'DR (oculista)': V('dr'),
+
+    'Cristal': `${V('cristal')} ${money(V('precio_cristal'))}`,
+    'Obra social': `${V('obra_social')} ${money(V('importe_obra_social'))}`,
+    'Armazón': `${V('numero_armazon')} ${V('armazon_detalle')} ${money(V('precio_armazon'))}`,
+    'Otro': `${V('otro_concepto')} ${money(V('precio_otro'))}`,
+
+    'Distancia focal': V('distancia_focal'),
+
+    'OD': `ESF ${V('od_esf')}  |  CIL ${V('od_cil')}  |  EJE ${V('od_eje')}`,
+    'OI': `ESF ${V('oi_esf')}  |  CIL ${V('oi_cil')}  |  EJE ${V('oi_eje')}`,
+    'DNP (OD/OI)': V('dnp'),
+    'ADD': V('add'),
+
+    'TOTAL': money(V('total')),
+    'SEÑA':  money(V('sena')),
+    'SALDO': money(V('saldo')),
+
+    'Vendedor': V('vendedor'),
+    'Forma de pago': V('forma_pago'),
+    'Entrega': entregaTxt()
   };
 }
 
 async function generarPack(){
-  const spinner = document.getElementById("spinner");
+  const spinner = document.getElementById('spinner');
   try{
     if (spinner) spinner.hidden = false;
 
-    // Validaciones mínimas
-    if (!V('numero_trabajo')) throw new Error("Ingresá el número de trabajo");
-    if (!V('dni'))            throw new Error("Ingresá el DNI");
-    if (!V('nombre'))         throw new Error("Ingresá el nombre");
+    if (!V('numero_trabajo')) throw new Error('Ingresá el número de trabajo');
+    if (!V('dni'))            throw new Error('Ingresá el DNI');
+    if (!V('nombre'))         throw new Error('Ingresá el nombre');
 
     const payload = {
       numero_trabajo: V('numero_trabajo'),
@@ -67,21 +72,18 @@ async function generarPack(){
     };
 
     const res = await fetch(PACK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body: new URLSearchParams({ genPack: "1", payload: JSON.stringify(payload) })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: new URLSearchParams({ genPack: '1', payload: JSON.stringify(payload) })
     });
-
     const raw = await res.text();
-    let ok=false, url="";
-    try { const j = JSON.parse(raw); ok = !!j.ok; url = j.url || ""; } catch { ok=false; }
+    let ok = false, url = '';
+    try { const j = JSON.parse(raw); ok = !!j.ok; url = j.url || j.pdf || ''; } catch {}
 
-    if (!ok || !url) throw new Error("No se pudo crear el PDF");
+    if (!ok || !url) throw new Error('No se pudo crear el PDF');
 
-    // guardo link oculto
     const hidden = $('pack_url'); if (hidden) hidden.value = url;
 
-    // UI
     if (window.Swal) {
       await Swal.fire({
         title: 'PDF generado',
@@ -99,23 +101,22 @@ async function generarPack(){
         }
       });
     } else {
-      if (confirm('PDF generado. ¿Abrir ahora?')) window.open(url,'_blank','noopener');
+      if (confirm('PDF generado. ¿Abrir ahora?')) window.open(url, '_blank', 'noopener');
     }
 
-  } catch(err){
+  } catch (err){
     console.error(err);
-    const msg = (err && err.message) ? err.message : 'Error inesperado';
+    const msg = err?.message || 'Error inesperado';
     const p = document.getElementById('mensaje');
-    if (p){ p.textContent = "❌ " + msg; p.style.color = 'red'; }
+    if (p){ p.textContent = '❌ ' + msg; p.style.color = 'red'; }
     if (window.Swal) Swal.fire('Error', msg, 'error');
   } finally {
     if (spinner) spinner.hidden = true;
   }
 }
 
-// Soportar ID nuevo y viejo por compatibilidad
-function attach(){
+// Soporta id nuevo/viejo
+(function attach(){
   const btn = document.getElementById('btn-generar-pack') || document.getElementById('btnPack');
   if (btn) btn.addEventListener('click', generarPack);
-}
-attach();
+})();

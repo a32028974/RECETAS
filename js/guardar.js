@@ -7,7 +7,7 @@ const V = (id) => (document.getElementById(id)?.value ?? "").toString().trim();
 const U = (v) => (v ?? "").toString().trim().toUpperCase();
 
 function syncNumeroTrabajoHidden() {
-  // Copia el visible (#numero_trabajo) al hidden (#numero_trabajo_hidden) que está dentro del <form>
+  // Copia el visible (#numero_trabajo) al hidden (#numero_trabajo_hidden) dentro del <form> (si existiera)
   const vis = $("numero_trabajo");
   const hid = $("numero_trabajo_hidden");
   if (vis && hid) hid.value = vis.value.trim();
@@ -16,12 +16,10 @@ function syncNumeroTrabajoHidden() {
 function entregaTxt() {
   const sel = document.getElementById('entrega-select');
   const v = sel?.value || '7';
-  // Texto simple para el PDF / notificación
   if (v === '3')  return 'URGENTE';
   if (v === '15') return 'LABORATORIO';
   return 'STOCK';
 }
-
 
 function fotosBase64() {
   const a = Array.isArray(window.__FOTOS) ? window.__FOTOS : [];
@@ -31,7 +29,6 @@ function fotosBase64() {
 function resumenPack() {
   const money = (v) => (v ? `$ ${v}` : "");
 
-  // texto visible del select (ej. "Laboratorio (15 días)")
   const sel = document.getElementById('entrega-select');
   const entregaLabel = sel?.options[sel.selectedIndex]?.text || entregaTxt();
 
@@ -45,11 +42,11 @@ function resumenPack() {
     "DR (oculista)": V("dr"),
 
     "Cristal": `${V("cristal")} ${money(V("precio_cristal"))}`,
-    "Obra social": `${V("obra_social")} ${money(V("importe_obra_social"))}`, // NUEVO
+    "Obra social": `${V("obra_social")} ${money(V("importe_obra_social"))}`,
     "Armazón": `${V("numero_armazon")} ${V("armazon_detalle")} ${money(V("precio_armazon"))}`,
     "Otro": `${V("otro_concepto")} ${money(V("precio_otro"))}`,
 
-    "Distancia focal": V("distancia_focal"),                                  // NUEVO
+    "Distancia focal": V("distancia_focal"),
 
     "OD": `ESF ${V("od_esf")}  |  CIL ${V("od_cil")}  |  EJE ${V("od_eje")}`,
     "OI": `ESF ${V("oi_esf")}  |  CIL ${V("oi_cil")}  |  EJE ${V("oi_eje")}`,
@@ -66,9 +63,7 @@ function resumenPack() {
   };
 }
 
-
 /* ===== Flujo principal ===== */
-// 👉 acepta { progress } y marca cada paso
 export async function guardarTrabajo({ progress } = {}) {
   const spinner = $("spinner");
   const setStep = (label, status = "done") => { try { progress?.mark?.(label, status); } catch {} };
@@ -76,14 +71,14 @@ export async function guardarTrabajo({ progress } = {}) {
   try {
     if (spinner) spinner.style.display = "block";
 
-    // Sincronizar hidden ANTES de leer/validar y de armar FormData
+    // Sincronizar hidden (si existe) ANTES de leer/validar y de armar FormData
     syncNumeroTrabajoHidden();
 
     // Validaciones mínimas
     setStep("Validando datos", "run");
     const nro = V("numero_trabajo"); // visible para validar UX
-    if (!nro) throw new Error("Ingresá el número de trabajo");
-    if (!V("dni")) throw new Error("Ingresá el DNI");
+    if (!nro)       throw new Error("Ingresá el número de trabajo");
+    if (!V("dni"))  throw new Error("Ingresá el DNI");
     if (!V("nombre")) throw new Error("Ingresá el nombre");
     setStep("Validando datos", "done");
 
@@ -92,13 +87,13 @@ export async function guardarTrabajo({ progress } = {}) {
     const formEl = $("formulario");
     if (!formEl) throw new Error("Formulario no encontrado");
 
-    // Armo el cuerpo con todo lo que esté DENTRO del <form> (incluye el hidden numero_trabajo)
+    // Armo el cuerpo con todo lo que esté DENTRO del <form> (incluye el hidden numero_trabajo si existiera)
     const body = new URLSearchParams(new FormData(formEl));
 
     let postJson;
     try {
       const res = await fetch(API_URL, { method: "POST", body });
-      const txt = await res.text(); // para log/diagnóstico
+      const txt = await res.text();
       try { postJson = JSON.parse(txt); } catch { postJson = null; }
 
       if (!res.ok) {
@@ -136,11 +131,11 @@ export async function guardarTrabajo({ progress } = {}) {
     const packUrl = j.url || j.pdf || "";
     setStep("Generando PDF", "done");
 
-    // 2.b) Guardar link del PDF en hidden (name="pdf") — viaja en futuros guardados si hiciera falta
+    // 2.b) Guardar link del PDF en hidden (name="pdf")
     const hidden = $("pack_url");
     if (hidden) hidden.value = packUrl;
 
-    // 2.c) Actualizar columna PDF en la fila (best-effort)
+    // 2.c) Actualizar columna PDF (best-effort)
     if (packUrl) {
       setStep("Guardando link del PDF", "run");
       try {
@@ -152,15 +147,13 @@ export async function guardarTrabajo({ progress } = {}) {
       setStep("Guardando link del PDF", "done");
     }
 
-    // 3) (Opcional) Enviando por Telegram ya lo hizo el PACK. Lo marcamos igual.
+    // 3) Telegram ya lo hizo el PACK
     setStep("Enviando por Telegram", "done");
     setStep("Listo", "done");
 
-    // Cerrar overlay de progreso ANTES del diálogo (sensación de “no colgado”)
     try { progress?.doneAndHide?.(0); } catch {}
     if (spinner) spinner.style.display = "none";
 
-    // Confirmar impresión
     if (window.Swal) {
       const r = await Swal.fire({
         title: "Guardado y PDF enviado",
